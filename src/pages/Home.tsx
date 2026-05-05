@@ -20,15 +20,30 @@ const GOLD = '#C9A028';
 const EASE: [number, number, number, number] = [0.21, 0.47, 0.32, 0.98];
 const EASE_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
-/* ─── Lenis smooth scroll ─── */
-function useLenis() {
+/* ─── Reduced-motion preference ─── */
+function usePrefersReducedMotion() {
+  const [prefers, setPrefers] = useState(false);
   useEffect(() => {
-    const lenis = new Lenis({ lerp: 0.09, smoothWheel: true });
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefers(mq.matches);
+    const onChange = () => setPrefers(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  return prefers;
+}
+
+/* ─── Lenis smooth scroll (off when reduced-motion or coarse pointer) ─── */
+function useLenis(disabled: boolean) {
+  useEffect(() => {
+    if (disabled) return;
+    const lenis = new Lenis({ lerp: 0.1, smoothWheel: true, syncTouch: false });
     let raf: number;
     const loop = (t: number) => { lenis.raf(t); raf = requestAnimationFrame(loop); };
     raf = requestAnimationFrame(loop);
     return () => { lenis.destroy(); cancelAnimationFrame(raf); };
-  }, []);
+  }, [disabled]);
 }
 
 /* ─── Animated counter ─── */
@@ -361,7 +376,8 @@ function ContactForm() {
 
 /* ═══════════════ PAGE ═══════════════ */
 export default function Home() {
-  useLenis();
+  const reduced = usePrefersReducedMotion();
+  useLenis(reduced);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -492,13 +508,13 @@ export default function Home() {
         style={{ background: `linear-gradient(135deg, #0d1f4e 0%, ${NAVY} 55%, #0a1835 100%)` }}>
         <GridHero />
         <motion.div style={{ y: heroY, opacity: heroOpacity }} className="absolute inset-0 z-0">
-          <img src={heroBg} alt="" className="w-full h-full object-cover opacity-15 mix-blend-luminosity" />
+          <img src={heroBg} alt="" loading="eager" decoding="async" fetchPriority="high" className="w-full h-full object-cover opacity-15 mix-blend-luminosity" />
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 0%, rgba(13,31,78,0.55) 65%, #0d1f4e 100%)' }} />
           {/* Animated rings */}
-          {[{ size: 700, pos: '-right-40', border: 2, dur: 80 }, { size: 460, pos: 'right-10', border: 1, dur: 55 }].map((r, i) => (
+          {!reduced && [{ size: 700, pos: '-right-40', border: 2, dur: 80 }, { size: 460, pos: 'right-10', border: 1, dur: 55 }].map((r, i) => (
             <motion.div key={i}
               className={`absolute top-1/4 ${r.pos} rounded-full opacity-[0.07] pointer-events-none`}
-              style={{ width: r.size, height: r.size, border: `${r.border}px solid ${GOLD}` }}
+              style={{ width: r.size, height: r.size, border: `${r.border}px solid ${GOLD}`, willChange: 'transform' }}
               animate={{ rotate: i === 0 ? 360 : -360 }}
               transition={{ duration: r.dur, repeat: Infinity, ease: 'linear' }} />
           ))}
@@ -562,7 +578,9 @@ export default function Home() {
         </div>
 
         <motion.div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10"
-          animate={{ y: [0, 9, 0] }} transition={{ repeat: Infinity, duration: 2.4, ease: 'easeInOut' }}>
+          style={{ willChange: 'transform' }}
+          animate={reduced ? undefined : { y: [0, 9, 0] }}
+          transition={{ repeat: Infinity, duration: 2.4, ease: 'easeInOut' }}>
           <ChevronDown className="w-5 h-5 text-white/30" />
         </motion.div>
       </section>
@@ -635,7 +653,7 @@ export default function Home() {
             <Reveal variant="fadeLeft" className="relative h-[480px] md:h-[580px] hidden lg:block">
               <motion.div className="w-full h-full rounded-2xl overflow-hidden"
                 whileHover={{ scale: 1.015 }} transition={{ duration: 0.4 }}>
-                <img src={methodologyImg} alt="Metodologia" className="w-full h-full object-cover opacity-50" />
+                <img src={methodologyImg} alt="Metodologia" loading="lazy" decoding="async" className="w-full h-full object-cover opacity-50" />
               </motion.div>
               <div className="absolute inset-0 rounded-2xl" style={{ background: 'linear-gradient(to right, transparent 50%, #0f2460 100%)' }} />
             </Reveal>
@@ -697,7 +715,7 @@ export default function Home() {
             <Reveal variant="fadeRight" className="relative h-[480px] md:h-[580px] hidden lg:block">
               <motion.div className="w-full h-full rounded-2xl overflow-hidden shadow-2xl"
                 whileHover={{ scale: 1.015 }} transition={{ duration: 0.35 }}>
-                <img src={axisConcept} alt="Engenharia de Negócios" className="w-full h-full object-cover" />
+                <img src={axisConcept} alt="Engenharia de Negócios" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 rounded-2xl" style={{ background: `linear-gradient(to top, ${NAVY}80, transparent 55%)` }} />
               </motion.div>
             </Reveal>
@@ -769,7 +787,7 @@ export default function Home() {
             <Reveal variant="fadeRight" className="relative aspect-[4/3] w-full">
               <motion.div className="w-full h-full rounded-2xl overflow-hidden shadow-xl"
                 whileHover={{ scale: 1.015 }} transition={{ duration: 0.35 }}>
-                <img src={teamImg} alt="Liderança Axis" className="w-full h-full object-cover" />
+                <img src={teamImg} alt="Liderança Axis" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 rounded-2xl" style={{ background: `linear-gradient(to top, ${NAVY}70, transparent 50%)` }} />
               </motion.div>
             </Reveal>
