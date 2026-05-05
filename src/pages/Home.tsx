@@ -17,6 +17,8 @@ import teamImg from '@/assets/team.png';
 
 const NAVY = '#1B3A8A';
 const GOLD = '#C9A028';
+const EASE: [number, number, number, number] = [0.21, 0.47, 0.32, 0.98];
+const EASE_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 /* ─── Lenis smooth scroll ─── */
 function useLenis() {
@@ -38,7 +40,7 @@ function Counter({ to, suffix = '' }: { to: number; suffix?: string }) {
     if (!inView) return;
     const ctrl = animate(mv, to, {
       duration: 2.2,
-      ease: [0.16, 1, 0.3, 1],
+      ease: EASE_OUT,
       onUpdate: (v) => { if (ref.current) ref.current.textContent = Math.round(v).toLocaleString('pt-BR') + suffix; },
     });
     return ctrl.stop;
@@ -113,7 +115,7 @@ function GoldLine({ className = 'w-10' }: { className?: string }) {
       style={{ background: GOLD }}
       initial={{ width: 0, opacity: 0 }}
       animate={inView ? { width: className.replace('w-', '') === '10' ? 40 : 48, opacity: 1 } : {}}
-      transition={{ duration: 0.6, ease: [0.21, 0.47, 0.32, 0.98] }}
+      transition={{ duration: 0.6, ease: EASE }}
     />
   );
 }
@@ -131,7 +133,7 @@ function AnimatedHeading({
       style={style}
       initial={{ opacity: 0, y: 28 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.7, delay, ease: [0.21, 0.47, 0.32, 0.98] }}
+      transition={{ duration: 0.7, delay, ease: EASE }}
     >
       {children}
     </motion.h2>
@@ -140,10 +142,10 @@ function AnimatedHeading({
 
 /* ─── Generic scroll-reveal ─── */
 const revealVariants = {
-  fadeUp:    { hidden: { opacity: 0, y: 40 },    visible: (d = 0) => ({ opacity: 1, y: 0,    transition: { duration: 0.65, delay: d * 0.1, ease: [0.21, 0.47, 0.32, 0.98] } }) },
-  fadeLeft:  { hidden: { opacity: 0, x: -48 },   visible: (d = 0) => ({ opacity: 1, x: 0,    transition: { duration: 0.65, delay: d * 0.1, ease: [0.21, 0.47, 0.32, 0.98] } }) },
-  fadeRight: { hidden: { opacity: 0, x: 48 },    visible: (d = 0) => ({ opacity: 1, x: 0,    transition: { duration: 0.65, delay: d * 0.1, ease: [0.21, 0.47, 0.32, 0.98] } }) },
-  scaleUp:   { hidden: { opacity: 0, scale: 0.9 }, visible: (d = 0) => ({ opacity: 1, scale: 1, transition: { duration: 0.6,  delay: d * 0.1, ease: [0.21, 0.47, 0.32, 0.98] } }) },
+  fadeUp:    { hidden: { opacity: 0, y: 40 },    visible: (d = 0) => ({ opacity: 1, y: 0,    transition: { duration: 0.65, delay: d * 0.1, ease: EASE } }) },
+  fadeLeft:  { hidden: { opacity: 0, x: -48 },   visible: (d = 0) => ({ opacity: 1, x: 0,    transition: { duration: 0.65, delay: d * 0.1, ease: EASE } }) },
+  fadeRight: { hidden: { opacity: 0, x: 48 },    visible: (d = 0) => ({ opacity: 1, x: 0,    transition: { duration: 0.65, delay: d * 0.1, ease: EASE } }) },
+  scaleUp:   { hidden: { opacity: 0, scale: 0.9 }, visible: (d = 0) => ({ opacity: 1, scale: 1, transition: { duration: 0.6,  delay: d * 0.1, ease: EASE } }) },
 };
 
 function Reveal({ children, variant = 'fadeUp', custom = 0, className = '' }: {
@@ -166,7 +168,7 @@ const staggerContainer = {
 };
 const staggerChild = {
   hidden: { opacity: 0, y: 36 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.21, 0.47, 0.32, 0.98] } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE } },
 };
 
 function StaggerGrid({ children, className = '' }: { children: React.ReactNode; className?: string }) {
@@ -189,7 +191,7 @@ function Accordion({ title, children }: { title: string; children: React.ReactNo
         <span className="text-sm md:text-base font-bold group-hover:text-primary transition-colors duration-200 leading-snug pt-0.5">
           {title}
         </span>
-        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.3, ease: [0.21, 0.47, 0.32, 0.98] }} className="shrink-0 mt-0.5">
+        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.3, ease: EASE }} className="shrink-0 mt-0.5">
           <ChevronDown className="w-4 h-4" style={{ color: GOLD }} />
         </motion.span>
       </button>
@@ -199,7 +201,7 @@ function Accordion({ title, children }: { title: string; children: React.ReactNo
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.32, ease: [0.21, 0.47, 0.32, 0.98] }}
+            transition={{ duration: 0.32, ease: EASE }}
             style={{ overflow: 'hidden' }}
           >
             <p className="text-foreground/60 leading-relaxed pb-5 text-sm">{children}</p>
@@ -217,7 +219,7 @@ function SectionLabel({ text, dark = false, delay = 0 }: { text: string; dark?: 
   return (
     <motion.div ref={ref} className="flex items-center gap-3 mb-6"
       initial={{ opacity: 0, x: -16 }} animate={inView ? { opacity: 1, x: 0 } : {}}
-      transition={{ duration: 0.5, delay, ease: [0.21, 0.47, 0.32, 0.98] }}>
+      transition={{ duration: 0.5, delay, ease: EASE }}>
       <GoldLine />
       <span className={`uppercase tracking-widest font-bold text-xs ${dark ? 'text-white/50' : 'text-foreground/50'}`}>{text}</span>
     </motion.div>
@@ -236,9 +238,124 @@ function NavLink({ href, children, light }: { href: string; children: string; li
         style={{ background: GOLD }}
         initial={{ width: 0 }}
         animate={{ width: hovered ? '100%' : 0 }}
-        transition={{ duration: 0.25, ease: [0.21, 0.47, 0.32, 0.98] }}
+        transition={{ duration: 0.25, ease: EASE }}
       />
     </a>
+  );
+}
+
+/* ─── Contact form (controlled, posts to /api/contact) ─── */
+type FormState = { name: string; email: string; role: string; revenue: string; message: string };
+const INITIAL_FORM: FormState = { name: '', email: '', role: '', revenue: '', message: '' };
+
+function ContactForm() {
+  const [data, setData] = useState<FormState>(INITIAL_FORM);
+  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [error, setError] = useState('');
+
+  const update = (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+    setData((d) => ({ ...d, [k]: e.target.value }));
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (!data.name.trim() || !data.message.trim()) {
+      setError('Preencha seu nome e o desafio atual.');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      setError('Informe um e-mail válido.');
+      return;
+    }
+    setStatus('sending');
+    try {
+      const r = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!r.ok) throw new Error('request failed');
+      setStatus('sent');
+      setData(INITIAL_FORM);
+    } catch {
+      setStatus('error');
+      setError('Não foi possível enviar agora. Tente novamente em instantes.');
+    }
+  };
+
+  const sending = status === 'sending';
+  const sent = status === 'sent';
+
+  return (
+    <form
+      className="relative rounded-2xl p-7 md:p-12 space-y-4 text-white overflow-hidden"
+      style={{ background: `linear-gradient(135deg, ${NAVY} 0%, #0d1f4e 100%)` }}
+      onSubmit={onSubmit}
+      noValidate
+    >
+      <GridFormCard />
+      <div className="relative z-10 space-y-4">
+        <h3 className="text-lg md:text-xl font-display font-bold mb-1">Solicitar Diagnóstico</h3>
+
+        <div>
+          <label htmlFor="cf-name" className="block text-xs text-white/45 mb-1.5 uppercase tracking-widest font-bold">Nome Completo</label>
+          <input id="cf-name" name="name" type="text" required autoComplete="name" placeholder="Ex: João Silva"
+            value={data.name} onChange={update('name')}
+            className="w-full bg-white/10 border border-white/15 rounded-xl p-3.5 text-sm focus:outline-none focus:border-white/50 transition-colors placeholder-white/25" />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="cf-email" className="block text-xs text-white/45 mb-1.5 uppercase tracking-widest font-bold">E-mail</label>
+            <input id="cf-email" name="email" type="email" required autoComplete="email" placeholder="joao@empresa.com"
+              value={data.email} onChange={update('email')}
+              className="w-full bg-white/10 border border-white/15 rounded-xl p-3.5 text-sm focus:outline-none focus:border-white/50 transition-colors placeholder-white/25" />
+          </div>
+          <div>
+            <label htmlFor="cf-role" className="block text-xs text-white/45 mb-1.5 uppercase tracking-widest font-bold">Cargo</label>
+            <input id="cf-role" name="role" type="text" autoComplete="organization-title" placeholder="CEO / Diretor"
+              value={data.role} onChange={update('role')}
+              className="w-full bg-white/10 border border-white/15 rounded-xl p-3.5 text-sm focus:outline-none focus:border-white/50 transition-colors placeholder-white/25" />
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="cf-revenue" className="block text-xs text-white/45 mb-1.5 uppercase tracking-widest font-bold">Faturamento Anual</label>
+          <select id="cf-revenue" name="revenue" value={data.revenue} onChange={update('revenue')}
+            className="w-full bg-white/10 border border-white/15 rounded-xl p-3.5 text-sm focus:outline-none focus:border-white/50 appearance-none cursor-pointer text-white/85">
+            <option value="" className="bg-[#1B3A8A]">Selecione uma faixa</option>
+            <option className="bg-[#1B3A8A]">R$ 5M – R$ 20M</option>
+            <option className="bg-[#1B3A8A]">R$ 20M – R$ 50M</option>
+            <option className="bg-[#1B3A8A]">Acima de R$ 50M</option>
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="cf-message" className="block text-xs text-white/45 mb-1.5 uppercase tracking-widest font-bold">Maior desafio hoje</label>
+          <textarea id="cf-message" name="message" required rows={3} placeholder="Descreva brevemente..."
+            value={data.message} onChange={update('message')}
+            className="w-full bg-white/10 border border-white/15 rounded-xl p-3.5 text-sm focus:outline-none focus:border-white/50 transition-colors resize-none placeholder-white/25" />
+        </div>
+
+        {error && (
+          <p role="alert" className="text-sm" style={{ color: '#ffb4b4' }}>{error}</p>
+        )}
+        {sent && (
+          <p role="status" className="text-sm" style={{ color: GOLD }}>
+            Recebemos sua solicitação. Nossa equipe responderá em até 1 dia útil.
+          </p>
+        )}
+
+        <motion.button type="submit"
+          disabled={sending || sent}
+          className="w-full font-bold py-4 rounded-xl uppercase tracking-widest text-sm flex items-center justify-center gap-2 mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
+          style={{ background: GOLD, color: '#0d1f4e' }}
+          whileHover={!sending && !sent ? { scale: 1.02, filter: 'brightness(1.08)' } : undefined}
+          whileTap={!sending && !sent ? { scale: 0.97 } : undefined}>
+          {sending ? 'Enviando…' : sent ? 'Enviado' : (<>Enviar Solicitação <ArrowRight className="w-4 h-4" /></>)}
+        </motion.button>
+      </div>
+    </form>
   );
 }
 
@@ -297,7 +414,7 @@ export default function Home() {
           ${scrolled ? 'bg-white/96 backdrop-blur-lg shadow-[0_1px_20px_rgba(0,0,0,0.06)]' : ''}`}
         initial={{ y: -60, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: [0.21, 0.47, 0.32, 0.98] }}
+        transition={{ duration: 0.6, ease: EASE }}
       >
         <div className={`container mx-auto px-5 md:px-12 flex items-center justify-between transition-[padding] duration-300 ${scrolled ? 'py-3' : 'py-5'}`}>
           <motion.a href="#" className={`text-xl md:text-2xl font-display font-bold tracking-tighter uppercase transition-colors duration-300 ${scrolled ? 'text-primary' : 'text-white'}`}
@@ -342,7 +459,7 @@ export default function Home() {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3, ease: [0.21, 0.47, 0.32, 0.98] }}
+              transition={{ duration: 0.3, ease: EASE }}
               className="md:hidden overflow-hidden bg-white border-t border-foreground/8"
             >
               <motion.div className="px-5 py-5 space-y-1"
@@ -353,7 +470,7 @@ export default function Home() {
                     href={`#${NAV_IDS[i]}`}
                     onClick={() => setMenuOpen(false)}
                     className="flex items-center gap-3 py-3 text-foreground/70 font-semibold text-sm uppercase tracking-wide hover:text-primary border-b border-foreground/6 last:border-0 transition-colors"
-                    variants={{ hidden: { opacity: 0, x: -16 }, visible: { opacity: 1, x: 0, transition: { duration: 0.35, ease: [0.21, 0.47, 0.32, 0.98] } } }}>
+                    variants={{ hidden: { opacity: 0, x: -16 }, visible: { opacity: 1, x: 0, transition: { duration: 0.35, ease: EASE } } }}>
                     <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: GOLD }} />
                     {label}
                   </motion.a>
@@ -392,7 +509,7 @@ export default function Home() {
             className="inline-flex items-center gap-2 border border-white/20 bg-white/10 backdrop-blur-sm px-4 py-2 mb-8 rounded-full"
             initial={{ opacity: 0, scale: 0.9, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1, ease: [0.21, 0.47, 0.32, 0.98] }}>
+            transition={{ duration: 0.6, delay: 0.1, ease: EASE }}>
             <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: GOLD }} />
             <span className="text-[10px] md:text-xs uppercase tracking-widest text-white/80 font-semibold">Consultoria Estratégica</span>
           </motion.div>
@@ -404,7 +521,7 @@ export default function Home() {
                 key={li}
                 initial={{ opacity: 0, y: 32 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 + li * 0.15, ease: [0.21, 0.47, 0.32, 0.98] }}
+                transition={{ duration: 0.8, delay: 0.2 + li * 0.15, ease: EASE }}
                 className={`font-display font-bold tracking-tighter leading-[0.93] block
                   text-[2.1rem] sm:text-5xl md:text-7xl lg:text-[7.5rem]
                   ${li === 0 ? 'text-white' : ''}`}
@@ -423,7 +540,7 @@ export default function Home() {
             className="text-base md:text-xl text-white/60 font-light leading-relaxed mb-10 max-w-lg"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.55, ease: [0.21, 0.47, 0.32, 0.98] }}>
+            transition={{ duration: 0.7, delay: 0.55, ease: EASE }}>
             Não entregamos relatórios genéricos. Estruturamos processos, otimizamos operações e destravamos receita para empresas que não têm tempo a perder.
           </motion.p>
 
@@ -712,53 +829,7 @@ export default function Home() {
             </Reveal>
 
             <Reveal variant="fadeRight">
-              <form
-                className="relative rounded-2xl p-7 md:p-12 space-y-4 text-white overflow-hidden"
-                style={{ background: `linear-gradient(135deg, ${NAVY} 0%, #0d1f4e 100%)` }}
-                onSubmit={(e) => e.preventDefault()}>
-                <GridFormCard />
-                <div className="relative z-10 space-y-4">
-                <h3 className="text-lg md:text-xl font-display font-bold mb-1">Solicitar Diagnóstico</h3>
-                <div>
-                  <label className="block text-xs text-white/45 mb-1.5 uppercase tracking-widest font-bold">Nome Completo</label>
-                  <input type="text" placeholder="Ex: João Silva"
-                    className="w-full bg-white/10 border border-white/15 rounded-xl p-3.5 text-sm focus:outline-none focus:border-white/50 transition-colors placeholder-white/25" />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs text-white/45 mb-1.5 uppercase tracking-widest font-bold">E-mail</label>
-                    <input type="email" placeholder="joao@empresa.com"
-                      className="w-full bg-white/10 border border-white/15 rounded-xl p-3.5 text-sm focus:outline-none focus:border-white/50 transition-colors placeholder-white/25" />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-white/45 mb-1.5 uppercase tracking-widest font-bold">Cargo</label>
-                    <input type="text" placeholder="CEO / Diretor"
-                      className="w-full bg-white/10 border border-white/15 rounded-xl p-3.5 text-sm focus:outline-none focus:border-white/50 transition-colors placeholder-white/25" />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs text-white/45 mb-1.5 uppercase tracking-widest font-bold">Faturamento Anual</label>
-                  <select className="w-full bg-white/10 border border-white/15 rounded-xl p-3.5 text-sm focus:outline-none focus:border-white/50 appearance-none cursor-pointer text-white/60">
-                    <option className="bg-[#1B3A8A]">Selecione uma faixa</option>
-                    <option className="bg-[#1B3A8A]">R$ 5M – R$ 20M</option>
-                    <option className="bg-[#1B3A8A]">R$ 20M – R$ 50M</option>
-                    <option className="bg-[#1B3A8A]">Acima de R$ 50M</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-white/45 mb-1.5 uppercase tracking-widest font-bold">Maior desafio hoje</label>
-                  <textarea rows={3} placeholder="Descreva brevemente..."
-                    className="w-full bg-white/10 border border-white/15 rounded-xl p-3.5 text-sm focus:outline-none focus:border-white/50 transition-colors resize-none placeholder-white/25" />
-                </div>
-                <motion.button type="submit"
-                  className="w-full font-bold py-4 rounded-xl uppercase tracking-widest text-sm flex items-center justify-center gap-2 mt-2"
-                  style={{ background: GOLD, color: '#0d1f4e' }}
-                  whileHover={{ scale: 1.02, filter: 'brightness(1.08)' }}
-                  whileTap={{ scale: 0.97 }}>
-                  Enviar Solicitação <ArrowRight className="w-4 h-4" />
-                </motion.button>
-                </div>
-              </form>
+              <ContactForm />
             </Reveal>
           </div>
         </div>
