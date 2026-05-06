@@ -393,8 +393,8 @@ export default function Home() {
     return () => window.removeEventListener('scroll', h);
   }, []);
 
-  const NAV_ITEMS = ['Expertise', 'Método', 'Resultados', 'FAQ', 'Contato'];
-  const NAV_IDS   = ['services', 'method',  'cases',      'faq', 'contact'];
+  const NAV_ITEMS = ['Expertise', 'Método', 'ERP', 'Resultados', 'FAQ', 'Contato'];
+  const NAV_IDS   = ['services', 'method',  'erp', 'cases',      'faq', 'contact'];
 
   const services = [
     { icon: <Anchor   className="w-5 h-5" style={{ color: GOLD }} />, title: 'Reestruturação Operacional', desc: 'Redesenhamos fluxos de trabalho para eliminar redundâncias e aumentar a margem de lucro.' },
@@ -718,6 +718,105 @@ export default function Home() {
                 <img src={axisConcept} alt="Engenharia de Negócios" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 rounded-2xl" style={{ background: `linear-gradient(to top, ${NAVY}80, transparent 55%)` }} />
               </motion.div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ 6.5 AXIS ERP — Product showcase ══ */}
+      <section id="erp" className="py-20 md:py-28 bg-muted">
+        <div className="container mx-auto px-5 md:px-12">
+          <div className="grid lg:grid-cols-12 gap-10 md:gap-14 items-center">
+            <div className="lg:col-span-5">
+              <SectionLabel text="Tecnologia Proprietária" />
+              <AnimatedHeading className="text-3xl md:text-5xl uppercase font-display font-bold tracking-tighter leading-[1.05] mb-5" style={{ color: NAVY }}>
+                Axis ERP — a infraestrutura da sua operação.
+              </AnimatedHeading>
+              <Reveal variant="fadeUp" custom={1}>
+                <p className="text-base md:text-lg text-foreground/60 leading-relaxed mb-8">
+                  Mais do que consultoria: deixamos um sistema rodando. Vendas, estoque, financeiro e métricas em tempo real — tudo numa única visão, multi-filial.
+                </p>
+              </Reveal>
+
+              <StaggerGrid className="space-y-3 mb-8">
+                {[
+                  { icon: <BarChart3 className="w-4 h-4" style={{ color: GOLD }} />, title: 'Métricas em tempo real', desc: 'Faturamento, ticket médio, comparativo entre filiais — sem planilha.' },
+                  { icon: <Building2 className="w-4 h-4" style={{ color: GOLD }} />, title: 'Operacional integrado', desc: 'Vendas, estoque, compras e logística no mesmo fluxo.' },
+                  { icon: <ShieldCheck className="w-4 h-4" style={{ color: GOLD }} />, title: 'Financeiro no controle', desc: 'Contas a pagar/receber, conciliação bancária, categorias.' },
+                  { icon: <TrendingUp className="w-4 h-4" style={{ color: GOLD }} />, title: 'Multi-filial nativo', desc: 'Compare desempenho entre unidades em um clique.' },
+                ].map((f, i) => (
+                  <motion.div key={i} variants={staggerChild} className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{ background: `${GOLD}1a` }}>
+                      {f.icon}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm mb-0.5" style={{ color: NAVY }}>{f.title}</h4>
+                      <p className="text-foreground/55 text-sm leading-relaxed">{f.desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </StaggerGrid>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <motion.a href="#contact"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 font-bold tracking-wide rounded-xl text-sm uppercase"
+                  style={{ background: NAVY, color: 'white' }}
+                  whileHover={{ scale: 1.03, filter: 'brightness(1.08)' }} whileTap={{ scale: 0.97 }}>
+                  Solicitar Demo <ArrowRight className="w-4 h-4" />
+                </motion.a>
+                <motion.a href="#contact"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 font-bold tracking-wide rounded-xl text-sm uppercase border-2"
+                  style={{ borderColor: `${NAVY}33`, color: NAVY }}
+                  whileHover={{ borderColor: NAVY, scale: 1.02 }} whileTap={{ scale: 0.97 }}>
+                  Falar com Especialista
+                </motion.a>
+              </div>
+            </div>
+
+            <Reveal variant="fadeRight" className="lg:col-span-7">
+              <div className="relative">
+                {/* Browser frame */}
+                <motion.div
+                  className="relative rounded-2xl overflow-hidden border border-foreground/10 bg-white shadow-2xl"
+                  whileHover={{ y: -4 }}
+                  transition={{ duration: 0.3 }}
+                  style={{ boxShadow: '0 30px 80px -20px rgba(27,58,138,0.25)' }}
+                >
+                  <div className="flex items-center gap-1.5 px-4 py-3 border-b border-foreground/8 bg-foreground/[0.02]">
+                    <span className="w-3 h-3 rounded-full bg-[#ff5f57]" />
+                    <span className="w-3 h-3 rounded-full bg-[#febc2e]" />
+                    <span className="w-3 h-3 rounded-full bg-[#28c840]" />
+                    <div className="ml-4 flex-1 h-6 rounded-md bg-foreground/[0.04] flex items-center px-3">
+                      <span className="text-[10px] font-medium text-foreground/40 tracking-wide">app.axiserp.com.br/metricas</span>
+                    </div>
+                  </div>
+                  <img
+                    src="/erp-screenshot.png"
+                    alt="Axis ERP — painel de métricas com faturamento, ticket médio e gráfico de vendas diárias"
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-auto block"
+                  />
+                </motion.div>
+
+                {/* Disclaimer */}
+                <p className="mt-4 text-xs text-foreground/45 italic text-center md:text-right">
+                  * Imagem ilustrativa do produto. Dados exibidos são fictícios para fins de demonstração.
+                </p>
+
+                {/* Floating accent badge */}
+                <motion.div
+                  className="hidden md:flex absolute -top-4 -left-4 items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest shadow-lg"
+                  style={{ background: GOLD, color: '#0d1f4e' }}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true, margin: '-80px' }}
+                  transition={{ duration: 0.5, ease: EASE_OUT, delay: 0.2 }}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#0d1f4e] animate-pulse" />
+                  Em produção
+                </motion.div>
+              </div>
             </Reveal>
           </div>
         </div>
