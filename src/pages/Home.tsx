@@ -1,213 +1,113 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   motion, AnimatePresence,
   useScroll, useTransform, useSpring,
-  useInView, useMotionValue, animate,
 } from 'framer-motion';
-import Lenis from 'lenis';
 import {
-  ArrowRight, BarChart3, Target, Zap, ShieldCheck,
+  ArrowRight, BarChart3, ShieldCheck,
   ChevronRight, Mail, MapPin, Building2, Network,
   Anchor, ChevronDown, Menu, X, TrendingUp,
+  Boxes, Cpu, GitBranch, Layers, LineChart, Sparkles,
+  MessageCircle,
 } from 'lucide-react';
-import heroBg from '@/assets/hero-bg.png';
-import axisConcept from '@/assets/axis-concept.png';
-import methodologyImg from '@/assets/methodology.png';
-import teamImg from '@/assets/team.png';
+import { NAVY, NAVY_DEEP, GOLD, GOLD_LIGHT, EASE, VERSION } from '@/lib/tokens';
+import {
+  usePrefersReducedMotion, useLenis,
+  Counter, Reveal, StaggerGrid, AnimatedHeading,
+  staggerChild,
+} from '@/components/primitives/MotionPrimitives';
+import { MonoLabel } from '@/components/primitives/MonoLabel';
+import { SectionCoord } from '@/components/primitives/SectionCoord';
+import { HairlineRule } from '@/components/primitives/HairlineRule';
+import { ErpMockup, ErpMiniLive } from '@/components/erp/ErpMockup';
 
-const NAVY = '#1B3A8A';
-const GOLD = '#C9A028';
-const EASE: [number, number, number, number] = [0.21, 0.47, 0.32, 0.98];
-const EASE_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
-
-/* ─── Reduced-motion preference ─── */
-function usePrefersReducedMotion() {
-  const [prefers, setPrefers] = useState(false);
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPrefers(mq.matches);
-    const onChange = () => setPrefers(mq.matches);
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, []);
-  return prefers;
-}
-
-/* ─── Lenis smooth scroll (off when reduced-motion or coarse pointer) ─── */
-function useLenis(disabled: boolean) {
-  useEffect(() => {
-    if (disabled) return;
-    const lenis = new Lenis({ lerp: 0.1, smoothWheel: true, syncTouch: false });
-    let raf: number;
-    const loop = (t: number) => { lenis.raf(t); raf = requestAnimationFrame(loop); };
-    raf = requestAnimationFrame(loop);
-    return () => { lenis.destroy(); cancelAnimationFrame(raf); };
-  }, [disabled]);
-}
-
-/* ─── Animated counter ─── */
-function Counter({ to, suffix = '' }: { to: number; suffix?: string }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true, margin: '-60px' });
-  const mv = useMotionValue(0);
-  useEffect(() => {
-    if (!inView) return;
-    const ctrl = animate(mv, to, {
-      duration: 2.2,
-      ease: EASE_OUT,
-      onUpdate: (v) => { if (ref.current) ref.current.textContent = Math.round(v).toLocaleString('pt-BR') + suffix; },
-    });
-    return ctrl.stop;
-  }, [inView, mv, to, suffix]);
-  return <span ref={ref}>0{suffix}</span>;
-}
-
-/* ─── Navy section overlays — each pattern is unique per section ─── */
-
-/** HERO: large square grid — blueprint/architectural */
-function GridHero() {
+function GridBlueprint({ density = 80, opacity = 0.055 }: { density?: number; opacity?: number }) {
   return (
-    <div className="absolute inset-0 pointer-events-none z-0" style={{
-      backgroundImage: `
-        linear-gradient(rgba(255,255,255,0.055) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.055) 1px, transparent 1px)
-      `,
-      backgroundSize: '80px 80px',
-      maskImage: 'radial-gradient(ellipse 85% 75% at 50% 50%, black 20%, transparent 100%)',
-      WebkitMaskImage: 'radial-gradient(ellipse 85% 75% at 50% 50%, black 20%, transparent 100%)',
-    }} />
-  );
-}
-
-/** METHODOLOGY: diamond crosshatch (45° + -45° diagonals) */
-function GridMethodology() {
-  return (
-    <div className="absolute inset-0 pointer-events-none z-0" style={{
-      backgroundImage: `
-        linear-gradient(45deg, rgba(255,255,255,0.04) 1px, transparent 1px),
-        linear-gradient(-45deg, rgba(255,255,255,0.04) 1px, transparent 1px)
-      `,
-      backgroundSize: '56px 56px',
-      maskImage: 'radial-gradient(ellipse 100% 90% at 70% 50%, black 10%, transparent 80%)',
-      WebkitMaskImage: 'radial-gradient(ellipse 100% 90% at 70% 50%, black 10%, transparent 80%)',
-    }} />
-  );
-}
-
-/** CASES: dot grid — data / precision feel */
-function GridCases() {
-  return (
-    <div className="absolute inset-0 pointer-events-none z-0" style={{
-      backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.12) 1px, transparent 1px)`,
-      backgroundSize: '36px 36px',
-      maskImage: 'radial-gradient(ellipse 90% 80% at 30% 50%, black 15%, transparent 85%)',
-      WebkitMaskImage: 'radial-gradient(ellipse 90% 80% at 30% 50%, black 15%, transparent 85%)',
-    }} />
-  );
-}
-
-/** CONTACT FORM: tight horizontal scan-lines */
-function GridFormCard() {
-  return (
-    <div className="absolute inset-0 pointer-events-none z-0 rounded-2xl overflow-hidden" style={{
-      backgroundImage: `linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px)`,
-      backgroundSize: '100% 40px',
-      maskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)',
-      WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)',
-    }} />
-  );
-}
-
-/* ─── Gold line draw (animates width from 0 to full) ─── */
-function GoldLine({ className = 'w-10' }: { className?: string }) {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: '-60px' });
-  return (
-    <motion.div
-      ref={ref}
-      className={`h-1 rounded-full shrink-0`}
-      style={{ background: GOLD }}
-      initial={{ width: 0, opacity: 0 }}
-      animate={inView ? { width: className.replace('w-', '') === '10' ? 40 : 48, opacity: 1 } : {}}
-      transition={{ duration: 0.6, ease: EASE }}
+    <div
+      className="absolute inset-0 pointer-events-none z-0"
+      style={{
+        backgroundImage: `
+          linear-gradient(rgba(255,255,255,${opacity}) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,${opacity}) 1px, transparent 1px)
+        `,
+        backgroundSize: `${density}px ${density}px`,
+        maskImage: 'radial-gradient(ellipse 90% 80% at 50% 50%, black 25%, transparent 100%)',
+        WebkitMaskImage: 'radial-gradient(ellipse 90% 80% at 50% 50%, black 25%, transparent 100%)',
+      }}
     />
   );
 }
 
-/* ─── Animated heading reveal (fade+slide up) ─── */
-function AnimatedHeading({
-  children, className = '', delay = 0, style,
-}: { children: string; className?: string; delay?: number; style?: React.CSSProperties }) {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: '-40px' });
+function GridDots() {
   return (
-    <motion.h2
-      ref={ref}
-      className={className}
-      style={style}
-      initial={{ opacity: 0, y: 28 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.7, delay, ease: EASE }}
+    <div
+      className="absolute inset-0 pointer-events-none z-0"
+      style={{
+        backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.12) 1px, transparent 1px)`,
+        backgroundSize: '36px 36px',
+        maskImage: 'radial-gradient(ellipse 90% 80% at 30% 50%, black 15%, transparent 85%)',
+        WebkitMaskImage: 'radial-gradient(ellipse 90% 80% at 30% 50%, black 15%, transparent 85%)',
+      }}
+    />
+  );
+}
+
+function GridLightDots() {
+  return (
+    <div
+      className="absolute inset-0 pointer-events-none z-0"
+      style={{
+        backgroundImage: `radial-gradient(circle, rgba(27,58,138,0.08) 1px, transparent 1px)`,
+        backgroundSize: '28px 28px',
+        maskImage: 'radial-gradient(ellipse 80% 60% at 50% 50%, black 20%, transparent 90%)',
+        WebkitMaskImage: 'radial-gradient(ellipse 80% 60% at 50% 50%, black 20%, transparent 90%)',
+      }}
+    />
+  );
+}
+
+function NavLink({ href, children, light }: { href: string; children: string; light: boolean }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <a
+      href={href}
+      className={`relative text-[11px] font-mono font-medium tracking-[0.18em] uppercase transition-colors duration-200 pb-0.5 ${
+        light ? 'text-foreground/65 hover:text-primary' : 'text-white/65 hover:text-white'
+      }`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
       {children}
-    </motion.h2>
+      <motion.span
+        className="absolute left-0 bottom-0 h-[1.5px] rounded-full"
+        style={{ background: GOLD }}
+        initial={{ width: 0 }}
+        animate={{ width: hovered ? '100%' : 0 }}
+        transition={{ duration: 0.25, ease: EASE }}
+      />
+    </a>
   );
 }
 
-/* ─── Generic scroll-reveal ─── */
-const revealVariants = {
-  fadeUp:    { hidden: { opacity: 0, y: 40 },    visible: (d = 0) => ({ opacity: 1, y: 0,    transition: { duration: 0.65, delay: d * 0.1, ease: EASE } }) },
-  fadeLeft:  { hidden: { opacity: 0, x: -48 },   visible: (d = 0) => ({ opacity: 1, x: 0,    transition: { duration: 0.65, delay: d * 0.1, ease: EASE } }) },
-  fadeRight: { hidden: { opacity: 0, x: 48 },    visible: (d = 0) => ({ opacity: 1, x: 0,    transition: { duration: 0.65, delay: d * 0.1, ease: EASE } }) },
-  scaleUp:   { hidden: { opacity: 0, scale: 0.9 }, visible: (d = 0) => ({ opacity: 1, scale: 1, transition: { duration: 0.6,  delay: d * 0.1, ease: EASE } }) },
-};
-
-function Reveal({ children, variant = 'fadeUp', custom = 0, className = '' }: {
-  children: React.ReactNode; variant?: keyof typeof revealVariants; custom?: number; className?: string;
-}) {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: '-60px' });
-  return (
-    <motion.div ref={ref} custom={custom} variants={revealVariants[variant]}
-      initial="hidden" animate={inView ? 'visible' : 'hidden'} className={className}>
-      {children}
-    </motion.div>
-  );
-}
-
-/* ─── Stagger container ─── */
-const staggerContainer = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.09 } },
-};
-const staggerChild = {
-  hidden: { opacity: 0, y: 36 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE } },
-};
-
-function StaggerGrid({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: '-40px' });
-  return (
-    <motion.div ref={ref} variants={staggerContainer} initial="hidden" animate={inView ? 'visible' : 'hidden'} className={className}>
-      {children}
-    </motion.div>
-  );
-}
-
-/* ─── Accordion ─── */
-function Accordion({ title, children }: { title: string; children: React.ReactNode }) {
+function Accordion({ index, q, a }: { index: string; q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="border-b border-foreground/10 last:border-0">
-      <button onClick={() => setOpen(!open)}
-        className="w-full py-5 flex items-start justify-between text-left focus-visible:outline-none group gap-4">
-        <span className="text-sm md:text-base font-bold group-hover:text-primary transition-colors duration-200 leading-snug pt-0.5">
-          {title}
+    <div className="border-b border-rule last:border-0">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full py-6 flex items-start gap-5 text-left focus-visible:outline-none group"
+      >
+        <MonoLabel className="text-foreground/35 pt-1 shrink-0 w-12">{index}</MonoLabel>
+        <span className="flex-1 text-base md:text-lg font-display font-semibold tracking-tight group-hover:text-primary transition-colors leading-snug">
+          {q}
         </span>
-        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.3, ease: EASE }} className="shrink-0 mt-0.5">
-          <ChevronDown className="w-4 h-4" style={{ color: GOLD }} />
+        <motion.span
+          animate={{ rotate: open ? 45 : 0 }}
+          transition={{ duration: 0.3, ease: EASE }}
+          className="shrink-0 mt-1.5 relative w-3.5 h-3.5"
+        >
+          <span className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-0.5 rounded-full" style={{ background: GOLD }} />
+          <span className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-0.5 rounded-full" style={{ background: GOLD }} />
         </motion.span>
       </button>
       <AnimatePresence initial={false}>
@@ -219,7 +119,9 @@ function Accordion({ title, children }: { title: string; children: React.ReactNo
             transition={{ duration: 0.32, ease: EASE }}
             style={{ overflow: 'hidden' }}
           >
-            <p className="text-foreground/60 leading-relaxed pb-5 text-sm">{children}</p>
+            <div className="pl-[68px] pr-8 pb-6">
+              <p className="text-foreground/65 leading-relaxed text-sm md:text-base">{a}</p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -227,154 +129,130 @@ function Accordion({ title, children }: { title: string; children: React.ReactNo
   );
 }
 
-/* ─── Section label ─── */
-function SectionLabel({ text, dark = false, delay = 0 }: { text: string; dark?: boolean; delay?: number }) {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: '-40px' });
-  return (
-    <motion.div ref={ref} className="flex items-center gap-3 mb-6"
-      initial={{ opacity: 0, x: -16 }} animate={inView ? { opacity: 1, x: 0 } : {}}
-      transition={{ duration: 0.5, delay, ease: EASE }}>
-      <GoldLine />
-      <span className={`uppercase tracking-widest font-bold text-xs ${dark ? 'text-white/50' : 'text-foreground/50'}`}>{text}</span>
-    </motion.div>
-  );
-}
+type FormState = { name: string; email: string; role: string; message: string };
+const INITIAL_FORM: FormState = { name: '', email: '', role: '', message: '' };
 
-/* ─── Nav link with animated underline ─── */
-function NavLink({ href, children, light }: { href: string; children: string; light: boolean }) {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <a href={href} className={`relative text-sm font-semibold tracking-wide uppercase transition-colors duration-200 pb-0.5 ${light ? 'text-foreground/65 hover:text-primary' : 'text-white/75 hover:text-white'}`}
-      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
-      {children}
-      <motion.span
-        className="absolute left-0 bottom-0 h-[2px] rounded-full"
-        style={{ background: GOLD }}
-        initial={{ width: 0 }}
-        animate={{ width: hovered ? '100%' : 0 }}
-        transition={{ duration: 0.25, ease: EASE }}
-      />
-    </a>
-  );
-}
-
-/* ─── Contact form (controlled, posts to /api/contact) ─── */
-type FormState = { name: string; email: string; role: string; revenue: string; message: string };
-const INITIAL_FORM: FormState = { name: '', email: '', role: '', revenue: '', message: '' };
+const WHATSAPP_NUMBER = '5515991025885';
 
 function ContactForm() {
   const [data, setData] = useState<FormState>(INITIAL_FORM);
-  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'sent'>('idle');
   const [error, setError] = useState('');
 
   const update = (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setData((d) => ({ ...d, [k]: e.target.value }));
 
-  const onSubmit = async (e: React.FormEvent) => {
+  const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     if (!data.name.trim() || !data.message.trim()) {
       setError('Preencha seu nome e o desafio atual.');
       return;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-      setError('Informe um e-mail válido.');
+    if (data.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      setError('Informe um e-mail válido (ou deixe em branco).');
       return;
     }
-    setStatus('sending');
-    try {
-      const r = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!r.ok) throw new Error('request failed');
-      setStatus('sent');
-      setData(INITIAL_FORM);
-    } catch {
-      setStatus('error');
-      setError('Não foi possível enviar agora. Tente novamente em instantes.');
-    }
+    const lines = [
+      'Olá, Axis! Gostaria de solicitar um diagnóstico.',
+      '',
+      `Nome: ${data.name.trim()}`,
+      data.email.trim() && `E-mail: ${data.email.trim()}`,
+      data.role.trim() && `Cargo: ${data.role.trim()}`,
+      '',
+      'Maior desafio hoje:',
+      data.message.trim(),
+    ].filter(Boolean) as string[];
+    const text = encodeURIComponent(lines.join('\n'));
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${text}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+    setStatus('sent');
   };
 
-  const sending = status === 'sending';
   const sent = status === 'sent';
 
   return (
     <form
-      className="relative rounded-2xl p-7 md:p-12 space-y-4 text-white overflow-hidden"
-      style={{ background: `linear-gradient(135deg, ${NAVY} 0%, #0d1f4e 100%)` }}
+      className="relative rounded-2xl p-7 md:p-10 space-y-4 text-white overflow-hidden"
+      style={{ background: `linear-gradient(135deg, ${NAVY} 0%, ${NAVY_DEEP} 100%)` }}
       onSubmit={onSubmit}
       noValidate
     >
-      <GridFormCard />
+      <div
+        className="absolute inset-0 pointer-events-none opacity-50"
+        style={{
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px)',
+          backgroundSize: '100% 32px',
+          maskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)',
+        }}
+      />
       <div className="relative z-10 space-y-4">
-        <h3 className="text-lg md:text-xl font-display font-bold mb-1">Solicitar Diagnóstico</h3>
+        <div className="flex items-baseline justify-between mb-3">
+          <h3 className="text-xl md:text-2xl font-display font-bold tracking-tight">Solicitar diagnóstico</h3>
+          <MonoLabel className="text-white/35">Form-01</MonoLabel>
+        </div>
 
         <div>
-          <label htmlFor="cf-name" className="block text-xs text-white/45 mb-1.5 uppercase tracking-widest font-bold">Nome Completo</label>
-          <input id="cf-name" name="name" type="text" required autoComplete="name" placeholder="Ex: João Silva"
+          <label htmlFor="cf-name" className="block font-mono text-[10px] text-white/45 mb-1.5 uppercase tracking-widest">Nome completo</label>
+          <input
+            id="cf-name" name="name" type="text" required autoComplete="name" placeholder="João Silva"
             value={data.name} onChange={update('name')}
-            className="w-full bg-white/10 border border-white/15 rounded-xl p-3.5 text-sm focus:outline-none focus:border-white/50 transition-colors placeholder-white/25" />
+            className="w-full bg-white/8 border border-white/15 rounded-xl p-3.5 text-sm focus:outline-none focus:border-white/55 transition-colors placeholder-white/25"
+          />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="cf-email" className="block text-xs text-white/45 mb-1.5 uppercase tracking-widest font-bold">E-mail</label>
-            <input id="cf-email" name="email" type="email" required autoComplete="email" placeholder="joao@empresa.com"
+            <label htmlFor="cf-email" className="block font-mono text-[10px] text-white/45 mb-1.5 uppercase tracking-widest">E-mail (opcional)</label>
+            <input
+              id="cf-email" name="email" type="email" autoComplete="email" placeholder="joao@empresa.com"
               value={data.email} onChange={update('email')}
-              className="w-full bg-white/10 border border-white/15 rounded-xl p-3.5 text-sm focus:outline-none focus:border-white/50 transition-colors placeholder-white/25" />
+              className="w-full bg-white/8 border border-white/15 rounded-xl p-3.5 text-sm focus:outline-none focus:border-white/55 transition-colors placeholder-white/25"
+            />
           </div>
           <div>
-            <label htmlFor="cf-role" className="block text-xs text-white/45 mb-1.5 uppercase tracking-widest font-bold">Cargo</label>
-            <input id="cf-role" name="role" type="text" autoComplete="organization-title" placeholder="CEO / Diretor"
+            <label htmlFor="cf-role" className="block font-mono text-[10px] text-white/45 mb-1.5 uppercase tracking-widest">Cargo</label>
+            <input
+              id="cf-role" name="role" type="text" autoComplete="organization-title" placeholder="CEO / Diretor"
               value={data.role} onChange={update('role')}
-              className="w-full bg-white/10 border border-white/15 rounded-xl p-3.5 text-sm focus:outline-none focus:border-white/50 transition-colors placeholder-white/25" />
+              className="w-full bg-white/8 border border-white/15 rounded-xl p-3.5 text-sm focus:outline-none focus:border-white/55 transition-colors placeholder-white/25"
+            />
           </div>
         </div>
 
         <div>
-          <label htmlFor="cf-revenue" className="block text-xs text-white/45 mb-1.5 uppercase tracking-widest font-bold">Faturamento Anual</label>
-          <select id="cf-revenue" name="revenue" value={data.revenue} onChange={update('revenue')}
-            className="w-full bg-white/10 border border-white/15 rounded-xl p-3.5 text-sm focus:outline-none focus:border-white/50 appearance-none cursor-pointer text-white/85">
-            <option value="" className="bg-[#1B3A8A]">Selecione uma faixa</option>
-            <option className="bg-[#1B3A8A]">R$ 5M – R$ 20M</option>
-            <option className="bg-[#1B3A8A]">R$ 20M – R$ 50M</option>
-            <option className="bg-[#1B3A8A]">Acima de R$ 50M</option>
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="cf-message" className="block text-xs text-white/45 mb-1.5 uppercase tracking-widest font-bold">Maior desafio hoje</label>
-          <textarea id="cf-message" name="message" required rows={3} placeholder="Descreva brevemente..."
+          <label htmlFor="cf-message" className="block font-mono text-[10px] text-white/45 mb-1.5 uppercase tracking-widest">Maior desafio hoje</label>
+          <textarea
+            id="cf-message" name="message" required rows={3} placeholder="Descreva brevemente..."
             value={data.message} onChange={update('message')}
-            className="w-full bg-white/10 border border-white/15 rounded-xl p-3.5 text-sm focus:outline-none focus:border-white/50 transition-colors resize-none placeholder-white/25" />
+            className="w-full bg-white/8 border border-white/15 rounded-xl p-3.5 text-sm focus:outline-none focus:border-white/55 transition-colors resize-none placeholder-white/25"
+          />
         </div>
 
-        {error && (
-          <p role="alert" className="text-sm" style={{ color: '#ffb4b4' }}>{error}</p>
-        )}
+        {error && <p role="alert" className="text-sm" style={{ color: '#ffb4b4' }}>{error}</p>}
         {sent && (
           <p role="status" className="text-sm" style={{ color: GOLD }}>
-            Recebemos sua solicitação. Nossa equipe responderá em até 1 dia útil.
+            Abrimos o WhatsApp em uma nova aba. Se não abriu, verifique o bloqueador de pop-ups.
           </p>
         )}
 
-        <motion.button type="submit"
-          disabled={sending || sent}
-          className="w-full font-bold py-4 rounded-xl uppercase tracking-widest text-sm flex items-center justify-center gap-2 mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
-          style={{ background: GOLD, color: '#0d1f4e' }}
-          whileHover={!sending && !sent ? { scale: 1.02, filter: 'brightness(1.08)' } : undefined}
-          whileTap={!sending && !sent ? { scale: 0.97 } : undefined}>
-          {sending ? 'Enviando…' : sent ? 'Enviado' : (<>Enviar Solicitação <ArrowRight className="w-4 h-4" /></>)}
+        <motion.button
+          type="submit"
+          className="w-full font-bold py-4 rounded-xl uppercase tracking-widest text-xs flex items-center justify-center gap-2 mt-2 font-mono"
+          style={{ background: GOLD, color: NAVY_DEEP }}
+          whileHover={{ scale: 1.02, filter: 'brightness(1.08)' }}
+          whileTap={{ scale: 0.97 }}
+        >
+          <MessageCircle className="w-4 h-4" />
+          Entrar em contato
+          <ArrowRight className="w-4 h-4" />
         </motion.button>
       </div>
     </form>
   );
 }
 
-/* ═══════════════ PAGE ═══════════════ */
 export default function Home() {
   const reduced = usePrefersReducedMotion();
   useLenis(reduced);
@@ -393,82 +271,112 @@ export default function Home() {
     return () => window.removeEventListener('scroll', h);
   }, []);
 
-  const NAV_ITEMS = ['Expertise', 'Método', 'ERP', 'Resultados', 'FAQ', 'Contato'];
-  const NAV_IDS   = ['services', 'method',  'erp', 'cases',      'faq', 'contact'];
+  const NAV_ITEMS = ['Dual Axis', 'Método', 'ERP', 'Resultados', 'FAQ', 'Contato'];
+  const NAV_IDS   = ['dual-axis', 'method', 'erp', 'cases', 'faq', 'contact'];
 
   const services = [
-    { icon: <Anchor   className="w-5 h-5" style={{ color: GOLD }} />, title: 'Reestruturação Operacional', desc: 'Redesenhamos fluxos de trabalho para eliminar redundâncias e aumentar a margem de lucro.' },
-    { icon: <Network  className="w-5 h-5" style={{ color: GOLD }} />, title: 'Otimização de Receita',       desc: 'Revisão de pricing, máquina de vendas e identificação de novos canais B2B.' },
-    { icon: <Building2 className="w-5 h-5" style={{ color: GOLD }} />, title: 'Advisory M&A',              desc: 'Captação ou fusão com valuation maximizado e due diligence antecipada.' },
-    { icon: <TrendingUp className="w-5 h-5" style={{ color: GOLD }} />, title: 'Transformação Digital',     desc: 'Ferramentas e processos digitais que reduzem overhead sem disrupção do negócio.' },
+    { icon: <Anchor className="w-5 h-5" style={{ color: GOLD }} />, title: 'Reestruturação operacional', tag: 'OPS-01', desc: 'Redesenhamos fluxos para eliminar redundâncias e elevar margem.' },
+    { icon: <Network className="w-5 h-5" style={{ color: GOLD }} />, title: 'Otimização de receita', tag: 'REV-02', desc: 'Pricing, máquina de vendas e canais B2B destravados.' },
+    { icon: <Building2 className="w-5 h-5" style={{ color: GOLD }} />, title: 'Advisory M&A', tag: 'MAA-03', desc: 'Captação, fusão e valuation com due diligence antecipada.' },
+    { icon: <TrendingUp className="w-5 h-5" style={{ color: GOLD }} />, title: 'Transformação digital', tag: 'DTX-04', desc: 'Sistemas e processos digitais sem disrupção do dia a dia.' },
   ];
 
   const steps = [
-    { n: '01', title: 'Imersão & Auditoria',     desc: 'Mapeamento de DRE, fluxo de caixa, processos vitais e cultura organizacional.' },
-    { n: '02', title: 'Desenho da Arquitetura',  desc: 'Plano tático com redesenho estrutural focado em eficiência e maximização de margem.' },
-    { n: '03', title: 'Choque de Gestão',         desc: 'Implementação assistida in loco com seus gestores para garantir a mudança de rota.' },
-    { n: '04', title: 'Tração & Escala',          desc: 'Monitoramento de KPIs, ajustes finos e consolidação da cultura de alta performance.' },
+    { n: '01', title: 'Imersão & Auditoria', deliverable: 'Mapa de DRE + diagnóstico', desc: 'Mapeamento de DRE, fluxo de caixa, processos vitais e cultura organizacional.' },
+    { n: '02', title: 'Desenho da Arquitetura', deliverable: 'Plano tático 90 dias', desc: 'Plano com redesenho estrutural focado em eficiência e maximização de margem.' },
+    { n: '03', title: 'Choque de Gestão', deliverable: 'ERP rodando + KPIs', desc: 'Implementação assistida in loco com seus gestores. Sistema entra no ar.' },
+    { n: '04', title: 'Tração & Escala', deliverable: 'Cultura de performance', desc: 'Monitoramento de KPIs, ajustes finos e consolidação da máquina.' },
   ];
 
   const faqs = [
-    { q: 'Qual é o tamanho mínimo de empresa que a Axis atende?',         a: 'Focamos em empresas com faturamento anual acima de R$ 20M que possuem operação validada mas encontram gargalos claros para escalar ou otimizar margem.' },
-    { q: 'Quanto tempo dura um projeto típico de reestruturação?',         a: 'Nossos ciclos de projeto variam de 4 a 8 meses. O objetivo é criar processos autossuficientes e sair da operação assim que a máquina estiver rodando.' },
-    { q: 'Vocês atuam na execução ou apenas entregam o planejamento?',     a: 'Atuamos na execução. Nossos consultores trabalham ombro a ombro com seus gestores para que a estratégia vire realidade no balanço.' },
-    { q: 'Como é estruturada a precificação dos serviços?',                a: 'Fee fixo de setup somado a success fee atrelado às métricas de resultado. Se você não ganha, nós não ganhamos.' },
+    { q: 'Minha empresa é pequena. A Axis atende mesmo?', a: 'Atendemos empresas que já têm operação rodando e sentem que perderam o controle do que acontece dentro dela. Tamanho importa menos do que a disposição de mudar — se você não sabe ao certo para onde o dinheiro está indo, já temos trabalho a fazer.' },
+    { q: 'Preciso contratar o ERP ou a consultoria pode vir sozinha?', a: 'As duas opções existem. A consultoria pode vir sem o ERP, e o ERP pode ser implantado de forma independente. Mas a maioria dos nossos clientes opta pelo conjunto, porque é aí que a mudança realmente se sustenta: a estratégia não some quando o consultor sai.' },
+    { q: 'Quanto tempo até eu começar a ver resultado?', a: 'Depende do ponto de partida, mas em geral as primeiras clarezas — onde está o gargalo, onde o dinheiro some, o que está fora do controle — aparecem nas primeiras semanas do diagnóstico. Resultado financeiro tangível costuma vir entre 60 e 120 dias de projeto.' },
+    { q: 'Não tenho tempo para acompanhar um projeto de consultoria. E agora?', a: 'Entendemos — falta de tempo é exatamente o sintoma que mais ouvimos. Por isso nossa equipe trabalha junto com a sua, sem depender de você para cada decisão. O objetivo é tirar peso dos seus ombros, não adicionar reuniões.' },
+    { q: 'Vocês entregam apresentação ou trabalham na operação mesmo?', a: 'Trabalhamos na operação. Nosso time entra junto com o seu para mapear, estruturar e implantar — e sai quando os processos estão rodando sozinhos. Não existe entrega de PowerPoint e tchau.' },
+    { q: 'Como funciona o diagnóstico inicial?', a: 'É a primeira etapa de todo projeto. Mapeamos sua operação, finanças e rotina de gestão para identificar onde estão as perdas e os gargalos reais. A partir daí, apresentamos um plano com prioridades claras. Entre em contato e marcamos uma conversa sem compromisso.' },
+  ];
+
+  const industries = ['Indústria', 'Varejo', 'SaaS B2B', 'Distribuição', 'Saúde', 'Logística'];
+
+  const cases = [
+    {
+      sector: 'Indústria de Manufatura', tag: 'CASE-01',
+      title: 'Corte de R$ 150mil em despesas sem perda de capacidade.',
+      desc: 'Reestruturação da cadeia de suprimentos e renegociação de contratos em 4 meses.',
+      before: { label: 'Custo OP', value: 'R$ 1.2M / mês', width: '88%' },
+      after: { label: 'Custo OP', value: 'R$ 720k / mês', width: '52%' },
+      metric: '-42%', metricLabel: 'Custo de Operação',
+      duration: '4 meses',
+    },
+    {
+      sector: 'SaaS B2B Enterprise', tag: 'CASE-02',
+      title: 'Aumento de 215% no ARR reestruturando o comissionamento.',
+      desc: 'Nova política de pricing e tiers enterprise que destravaram contas paradas.',
+      before: { label: 'ARR', value: 'R$ 4.8M', width: '32%' },
+      after: { label: 'ARR', value: 'R$ 15.1M', width: '94%' },
+      metric: '+215%', metricLabel: 'Receita Anual (ARR)',
+      duration: '6 meses',
+    },
   ];
 
   return (
     <div className="bg-background text-foreground min-h-screen overflow-x-hidden">
 
-      {/* Progress bar */}
-      <motion.div className="fixed top-0 left-0 right-0 h-[3px] z-[60] origin-left"
-        style={{ scaleX, background: `linear-gradient(90deg, ${NAVY}, ${GOLD})` }} />
+      <motion.div
+        className="fixed top-0 left-0 right-0 h-[2px] z-[60] origin-left"
+        style={{ scaleX, background: `linear-gradient(90deg, ${NAVY}, ${GOLD})` }}
+      />
 
-      {/* ── NAVBAR ── */}
       <motion.nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-[background,box-shadow,padding] duration-400 ease-out
-          ${scrolled ? 'bg-white/96 backdrop-blur-lg shadow-[0_1px_20px_rgba(0,0,0,0.06)]' : ''}`}
+        className={`fixed top-0 left-0 right-0 z-50 transition-[background,box-shadow,padding] duration-400 ease-out ${
+          scrolled ? 'bg-white/95 backdrop-blur-lg shadow-[0_1px_20px_rgba(0,0,0,0.05)]' : ''
+        }`}
         initial={{ y: -60, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: EASE }}
       >
-        <div className={`container mx-auto px-5 md:px-12 flex items-center justify-between transition-[padding] duration-300 ${scrolled ? 'py-3' : 'py-5'}`}>
-          <motion.a href="#" className={`text-xl md:text-2xl font-display font-bold tracking-tighter uppercase transition-colors duration-300 ${scrolled ? 'text-primary' : 'text-white'}`}
-            whileHover={{ scale: 1.03 }} transition={{ duration: 0.15 }}>
-            Axis<span style={{ color: GOLD }}>.</span>
-          </motion.a>
+        <div className={`container mx-auto px-5 md:px-10 flex items-center justify-between transition-[padding] duration-300 ${scrolled ? 'py-3' : 'py-4 md:py-5'}`}>
+          <div className="flex items-baseline gap-3">
+            <a href="#" className={`text-xl md:text-2xl font-display font-bold tracking-tighter uppercase transition-colors duration-300 ${scrolled ? 'text-primary' : 'text-white'}`}>
+              Axis<span style={{ color: GOLD }}>.</span>
+            </a>
+            <MonoLabel className={scrolled ? 'text-foreground/35' : 'text-white/45'}>{VERSION}</MonoLabel>
+          </div>
 
-          {/* Desktop links */}
-          <div className="hidden md:flex items-center gap-7">
+          <div className="hidden lg:flex items-center gap-7">
             {NAV_ITEMS.map((label, i) => (
               <NavLink key={label} href={`#${NAV_IDS[i]}`} light={scrolled}>{label}</NavLink>
             ))}
           </div>
 
-          {/* CTA button desktop */}
-          <motion.a href="#contact"
-            className="hidden md:inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wide transition-all duration-200"
-            style={{ background: GOLD, color: '#0d1f4e' }}
-            whileHover={{ scale: 1.04, filter: 'brightness(1.08)' }}
-            whileTap={{ scale: 0.96 }}>
-            Diagnóstico Grátis <ArrowRight className="w-3.5 h-3.5" />
-          </motion.a>
+          <div className="hidden md:flex items-center gap-4">
+            <motion.a
+              href="#contact"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all duration-200 font-mono"
+              style={{ background: GOLD, color: NAVY_DEEP }}
+              whileHover={{ scale: 1.04, filter: 'brightness(1.08)' }}
+              whileTap={{ scale: 0.96 }}
+            >
+              Diagnóstico <ArrowRight className="w-3.5 h-3.5" />
+            </motion.a>
+          </div>
 
-          {/* Hamburger */}
           <motion.button
-            className={`md:hidden p-1 rounded-lg transition-colors ${scrolled ? 'text-foreground' : 'text-white'}`}
+            className={`lg:hidden p-1 rounded-lg transition-colors ${scrolled ? 'text-foreground' : 'text-white'}`}
             onClick={() => setMenuOpen(v => !v)}
-            whileTap={{ scale: 0.9 }}>
+            whileTap={{ scale: 0.9 }}
+            aria-label="Menu"
+          >
             <AnimatePresence mode="wait" initial={false}>
               {menuOpen
-                ? <motion.span key="x"   initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}><X className="w-6 h-6" /></motion.span>
-                : <motion.span key="menu" initial={{ rotate: 90, opacity: 0 }}  animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}><Menu className="w-6 h-6" /></motion.span>
+                ? <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}><X className="w-6 h-6" /></motion.span>
+                : <motion.span key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}><Menu className="w-6 h-6" /></motion.span>
               }
             </AnimatePresence>
           </motion.button>
         </div>
 
-        {/* Mobile menu */}
         <AnimatePresence>
           {menuOpen && (
             <motion.div
@@ -476,26 +384,33 @@ export default function Home() {
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3, ease: EASE }}
-              className="md:hidden overflow-hidden bg-white border-t border-foreground/8"
+              className="lg:hidden overflow-hidden bg-white border-t border-rule"
             >
-              <motion.div className="px-5 py-5 space-y-1"
+              <motion.div
+                className="px-5 py-5 space-y-1"
                 initial="hidden" animate="visible"
-                variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } } }}>
+                variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } } }}
+              >
                 {NAV_ITEMS.map((label, i) => (
-                  <motion.a key={label}
+                  <motion.a
+                    key={label}
                     href={`#${NAV_IDS[i]}`}
                     onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-3 py-3 text-foreground/70 font-semibold text-sm uppercase tracking-wide hover:text-primary border-b border-foreground/6 last:border-0 transition-colors"
-                    variants={{ hidden: { opacity: 0, x: -16 }, visible: { opacity: 1, x: 0, transition: { duration: 0.35, ease: EASE } } }}>
+                    className="flex items-center gap-3 py-3 text-foreground/70 font-mono text-xs uppercase tracking-[0.18em] hover:text-primary border-b border-rule last:border-0 transition-colors"
+                    variants={{ hidden: { opacity: 0, x: -16 }, visible: { opacity: 1, x: 0, transition: { duration: 0.35, ease: EASE } } }}
+                  >
                     <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: GOLD }} />
                     {label}
                   </motion.a>
                 ))}
-                <motion.a href="#contact" onClick={() => setMenuOpen(false)}
-                  className="flex items-center justify-center gap-2 mt-4 py-3.5 rounded-xl font-bold text-sm uppercase tracking-wide w-full"
-                  style={{ background: GOLD, color: '#0d1f4e' }}
-                  variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}>
-                  Diagnóstico Grátis <ArrowRight className="w-4 h-4" />
+                <motion.a
+                  href="#contact"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 mt-4 py-3.5 rounded-xl font-bold text-xs uppercase tracking-widest font-mono"
+                  style={{ background: GOLD, color: NAVY_DEEP }}
+                  variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}
+                >
+                  Diagnóstico <ArrowRight className="w-4 h-4" />
                 </motion.a>
               </motion.div>
             </motion.div>
@@ -503,361 +418,362 @@ export default function Home() {
         </AnimatePresence>
       </motion.nav>
 
-      {/* ══ 1. HERO ══ */}
-      <section className="relative h-[110dvh] min-h-[650px] flex items-center justify-center overflow-hidden"
-        style={{ background: `linear-gradient(135deg, #0d1f4e 0%, ${NAVY} 55%, #0a1835 100%)` }}>
-        <GridHero />
+      {/* HERO */}
+      <section
+        className="relative min-h-[100dvh] flex items-center overflow-hidden pt-28 pb-16 md:pt-32 md:pb-24"
+        style={{ background: `linear-gradient(135deg, ${NAVY_DEEP} 0%, ${NAVY} 55%, #0a1835 100%)` }}
+      >
+        <GridBlueprint />
         <motion.div style={{ y: heroY, opacity: heroOpacity }} className="absolute inset-0 z-0">
-          <img src={heroBg} alt="" loading="eager" decoding="async" fetchPriority="high" className="w-full h-full object-cover opacity-15 mix-blend-luminosity" />
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 0%, rgba(13,31,78,0.55) 65%, #0d1f4e 100%)' }} />
-          {/* Animated rings */}
           {!reduced && [{ size: 700, pos: '-right-40', border: 2, dur: 80 }, { size: 460, pos: 'right-10', border: 1, dur: 55 }].map((r, i) => (
-            <motion.div key={i}
-              className={`absolute top-1/4 ${r.pos} rounded-full opacity-[0.07] pointer-events-none`}
+            <motion.div
+              key={i}
+              className={`absolute top-1/3 ${r.pos} rounded-full opacity-[0.08] pointer-events-none`}
               style={{ width: r.size, height: r.size, border: `${r.border}px solid ${GOLD}`, willChange: 'transform' }}
               animate={{ rotate: i === 0 ? 360 : -360 }}
-              transition={{ duration: r.dur, repeat: Infinity, ease: 'linear' }} />
+              transition={{ duration: r.dur, repeat: Infinity, ease: 'linear' }}
+            />
           ))}
         </motion.div>
 
-        <div className="relative z-10 container mx-auto px-5 md:px-12 flex flex-col items-center text-center mt-16 md:mt-20">
-          <motion.div
-            className="inline-flex items-center gap-2 border border-white/20 bg-white/10 backdrop-blur-sm px-4 py-2 mb-8 rounded-full"
-            initial={{ opacity: 0, scale: 0.9, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1, ease: EASE }}>
-            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: GOLD }} />
-            <span className="text-[10px] md:text-xs uppercase tracking-widest text-white/80 font-semibold">Consultoria Estratégica</span>
-          </motion.div>
-
-          {/* Staggered headline */}
-          <div className="w-full mb-6 md:mb-8 px-1">
-            {['O EIXO DA SUA', 'PRÓXIMA ESCALA.'].map((line, li) => (
+        <div className="relative z-10 container mx-auto px-5 md:px-10">
+          <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+            <div className="lg:col-span-7">
               <motion.div
-                key={li}
-                initial={{ opacity: 0, y: 32 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 + li * 0.15, ease: EASE }}
-                className={`font-display font-bold tracking-tighter leading-[0.93] block
-                  text-[2.1rem] sm:text-5xl md:text-7xl lg:text-[7.5rem]
-                  ${li === 0 ? 'text-white' : ''}`}
-                style={li === 1 ? {
-                  backgroundImage: `linear-gradient(90deg, ${GOLD} 0%, #f0c84a 100%)`,
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                } : {}}>
-                {line}
+                className="inline-flex items-center gap-2 border border-white/15 bg-white/8 backdrop-blur-sm px-3 py-1.5 mb-7 rounded-full"
+                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
+              >
+                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: GOLD }} />
+                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/80 font-medium">
+                  Consultoria estratégica + ERP proprietário
+                </span>
               </motion.div>
-            ))}
+
+              <h1 className="mb-7 md:mb-9 m-0">
+                <span className="sr-only">Axis Consulting — Engenharia de Negócios com Sistema</span>
+                {['ENGENHARIA', 'DE NEGÓCIOS', 'COM SISTEMA'].map((line, li) => (
+                  <motion.span
+                    key={li}
+                    aria-hidden="true"
+                    initial={{ opacity: 0, y: 32 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.2 + li * 0.13, ease: EASE }}
+                    className="font-display font-bold tracking-[-0.04em] leading-[0.92] block"
+                    style={{
+                      fontSize: 'clamp(2.2rem, 7.5vw, 6.5rem)',
+                      color: li === 2 ? 'transparent' : 'white',
+                      backgroundImage: li === 2 ? `linear-gradient(90deg, ${GOLD} 0%, ${GOLD_LIGHT} 100%)` : undefined,
+                      WebkitBackgroundClip: li === 2 ? 'text' : undefined,
+                      backgroundClip: li === 2 ? 'text' : undefined,
+                    }}
+                  >
+                    {line}
+                    {li === 2 && <span className="text-white">.</span>}
+                  </motion.span>
+                ))}
+              </h1>
+
+              <motion.p
+                className="text-base md:text-lg text-white/65 font-light leading-relaxed mb-8 max-w-lg"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.65, ease: EASE }}
+              >
+                Consultoria estratégica + ERP proprietário. Não saímos quando o projeto acaba — <span className="text-white">deixamos o sistema rodando</span>.
+              </motion.p>
+
+              <motion.div
+                className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto mb-10"
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.78 }}
+              >
+                <motion.a
+                  href="#contact"
+                  className="inline-flex items-center justify-center gap-2 px-7 py-4 font-bold tracking-widest rounded-xl text-xs uppercase font-mono"
+                  style={{ background: GOLD, color: NAVY_DEEP }}
+                  whileHover={{ scale: 1.03, filter: 'brightness(1.08)' }}
+                  whileTap={{ scale: 0.96 }}
+                >
+                  Agendar diagnóstico <ArrowRight className="w-4 h-4" />
+                </motion.a>
+                <motion.a
+                  href="#erp"
+                  className="inline-flex items-center justify-center gap-2 px-7 py-4 font-bold tracking-widest rounded-xl text-xs uppercase border border-white/25 text-white font-mono"
+                  whileHover={{ borderColor: 'rgba(255,255,255,0.6)', scale: 1.02 }}
+                  whileTap={{ scale: 0.96 }}
+                >
+                  Ver ERP ao vivo
+                </motion.a>
+              </motion.div>
+
+              <motion.div
+                className="flex items-center gap-6 flex-wrap"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1, duration: 0.6 }}
+              >
+                <div>
+                  <MonoLabel className="text-white/35 block mb-1">Receita recuperada</MonoLabel>
+                  <span className="font-display font-bold text-white text-2xl tabular-nums">
+                    R$ <Counter to={1200} duration={2.4} />k
+                  </span>
+                </div>
+                <span className="w-px h-10 bg-white/15" />
+                <div>
+                  <MonoLabel className="text-white/35 block mb-1">Operações</MonoLabel>
+                  <span className="font-display font-bold text-white text-2xl tabular-nums">
+                    +<Counter to={150} duration={2.4} />
+                  </span>
+                </div>
+                <span className="w-px h-10 bg-white/15 hidden sm:block" />
+                <div className="hidden sm:block">
+                  <MonoLabel className="text-white/35 block mb-1">ROI médio</MonoLabel>
+                  <span className="font-display font-bold text-white text-2xl tabular-nums">
+                    <Counter to={90} duration={2.4} /> <span className="text-base text-white/65">dias</span>
+                  </span>
+                </div>
+              </motion.div>
+            </div>
+
+            <div className="lg:col-span-5 flex justify-center lg:justify-end relative">
+              <ErpMiniLive />
+            </div>
           </div>
-
-          <motion.p
-            className="text-base md:text-xl text-white/60 font-light leading-relaxed mb-10 max-w-lg"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.55, ease: EASE }}>
-            Não entregamos relatórios genéricos. Estruturamos processos, otimizamos operações e destravamos receita para empresas que não têm tempo a perder.
-          </motion.p>
-
-          <motion.div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto"
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.68 }}>
-            <motion.a href="#contact"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 font-bold tracking-wide rounded-xl text-sm uppercase"
-              style={{ background: GOLD, color: '#0d1f4e' }}
-              whileHover={{ scale: 1.04, filter: 'brightness(1.08)' }} whileTap={{ scale: 0.96 }}>
-              Agendar Diagnóstico <ArrowRight className="w-4 h-4" />
-            </motion.a>
-            <motion.a href="#cases"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 font-bold tracking-wide rounded-xl text-sm uppercase border-2 border-white/25 text-white"
-              whileHover={{ borderColor: 'rgba(255,255,255,0.6)', scale: 1.02 }} whileTap={{ scale: 0.96 }}>
-              Ver Resultados
-            </motion.a>
-          </motion.div>
         </div>
 
-        <motion.div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10"
-          style={{ willChange: 'transform' }}
+        <motion.div
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10"
           animate={reduced ? undefined : { y: [0, 9, 0] }}
-          transition={{ repeat: Infinity, duration: 2.4, ease: 'easeInOut' }}>
+          transition={{ repeat: Infinity, duration: 2.4, ease: 'easeInOut' }}
+        >
           <ChevronDown className="w-5 h-5 text-white/30" />
         </motion.div>
       </section>
 
-      {/* ══ 3. METRICS ══ */}
-      <section className="py-16 md:py-20 bg-muted">
-        <div className="container mx-auto px-5 md:px-12">
-          <StaggerGrid className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
-            {[
-              { raw: '100k', prefix: 'R$ ', label: 'Receita recuperada em média' },
-              { to: 40,  suffix: '%',    label: 'Redução média de custos operacionais' },
-              { to: 150, prefix: '+',    label: 'Operações reestruturadas no Brasil' },
-              { to: 90,  suffix: ' dias', label: 'Tempo médio para ROI do projeto' },
-            ].map((m, i) => (
-              <motion.div key={i} variants={staggerChild}
-                className="bg-white rounded-2xl p-5 md:p-7 text-center flex flex-col justify-between border border-foreground/6 shadow-sm h-full"
-                whileHover={{ y: -4, boxShadow: '0 14px 40px rgba(27,58,138,0.11)' }} transition={{ duration: 0.22 }}>
-                <div className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-2 md:mb-3" style={{ color: NAVY }}>
-                  {m.prefix ?? ''}{m.raw ? m.raw : <Counter to={m.to!} suffix={m.suffix ?? ''} />}
-                </div>
-                <span className="text-[10px] md:text-xs text-foreground/50 uppercase tracking-widest font-semibold leading-relaxed">{m.label}</span>
-              </motion.div>
-            ))}
-          </StaggerGrid>
-        </div>
-      </section>
-
-      {/* ══ 4. PROBLEM ══ */}
-      <section className="py-20 md:py-28 bg-white">
-        <div className="container mx-auto px-5 md:px-12">
-          <div className="max-w-3xl mb-12 md:mb-16">
-            <SectionLabel text="O Problema Real" />
-            <AnimatedHeading className="text-3xl md:text-5xl uppercase font-display font-bold tracking-tighter mb-5 leading-[1.05]" style={{ color: NAVY }}>
-                Consultoria e transparência são sinômino de resultados.
-            </AnimatedHeading>
-            <Reveal variant="fadeUp" custom={1}>
-              <p className="text-base md:text-lg text-foreground/60 leading-relaxed">
-                Sabemos o porquê você hesita. O mercado está cheio de teóricos que apontam o problema e desaparecem na hora da execução.
-              </p>
-            </Reveal>
-          </div>
-
-          <StaggerGrid className="grid sm:grid-cols-3 gap-4">
-            {[
-              { icon: <Zap className="w-5 h-5" style={{ color: GOLD }} />, title: 'Diagnóstico Clínico', desc: 'Analisamos números, processos e gargalos com precisão cirúrgica para encontrar onde o dinheiro está vazando.' },
-              { icon: <Target className="w-5 h-5" style={{ color: GOLD }} />, title: 'Estratégia Aplicável', desc: 'Planos de ação que sua equipe executa amanhã. O que não é prático é descartado do framework sumariamente.' },
-              { icon: <ShieldCheck className="w-5 h-5" style={{ color: GOLD }} />, title: 'Acompanhamento estratégico ', desc: 'Ficamos ao seu lado durante a implementação, ajustando a rota até os resultados estarem no balanço.' },
-            ].map((item, i) => (
-              <motion.div key={i} variants={staggerChild}
-                className="rounded-2xl border border-foreground/8 p-6 md:p-8 bg-muted h-full flex flex-col"
-                whileHover={{ y: -5, boxShadow: '0 18px 48px rgba(27,58,138,0.09)', borderColor: `${NAVY}22` }}
-                transition={{ duration: 0.22 }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-5 shrink-0" style={{ background: `${GOLD}1a` }}>
-                  {item.icon}
-                </div>
-                <h3 className="text-base font-bold mb-2.5" style={{ color: NAVY }}>{item.title}</h3>
-                <p className="text-foreground/55 leading-relaxed text-sm flex-1">{item.desc}</p>
-              </motion.div>
-            ))}
-          </StaggerGrid>
-        </div>
-      </section>
-
-      {/* ══ 5. METHODOLOGY — Navy ══ */}
-      <section id="method" className="relative py-20 md:py-28 overflow-hidden"
-        style={{ background: `linear-gradient(135deg, #0d1f4e 0%, ${NAVY} 100%)` }}>
-        <GridMethodology />
-        <div className="relative z-10 container mx-auto px-5 md:px-12">
-          <div className="grid lg:grid-cols-2 gap-12 md:gap-16 items-center">
-            <Reveal variant="fadeLeft" className="relative h-[480px] md:h-[580px] hidden lg:block">
-              <motion.div className="w-full h-full rounded-2xl overflow-hidden"
-                whileHover={{ scale: 1.015 }} transition={{ duration: 0.4 }}>
-                <img src={methodologyImg} alt="Metodologia" loading="lazy" decoding="async" className="w-full h-full object-cover opacity-50" />
-              </motion.div>
-              <div className="absolute inset-0 rounded-2xl" style={{ background: 'linear-gradient(to right, transparent 50%, #0f2460 100%)' }} />
-            </Reveal>
-
-            <div>
-              <SectionLabel text="O Método Axis" dark />
-              <AnimatedHeading className="text-3xl md:text-5xl font-display font-bold mb-10 leading-tight text-white" delay={0.1}>
-                PRECISÃO MILIMÉTRICA EM 4 ETAPAS.
-              </AnimatedHeading>
-
-              <StaggerGrid className="space-y-3">
-                {steps.map((s, i) => (
-                  <motion.div key={i} variants={staggerChild}
-                    className="flex gap-4 p-4 md:p-5 rounded-xl border border-white/10 bg-white/[0.05] cursor-default"
-                    whileHover={{ backgroundColor: 'rgba(255,255,255,0.09)', borderColor: `${GOLD}55` }}
-                    transition={{ duration: 0.2 }}>
-                    <div className="w-8 h-8 md:w-9 md:h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0" style={{ background: GOLD, color: '#0d1f4e' }}>
-                      {s.n}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-white text-sm md:text-base mb-0.5">{s.title}</h3>
-                      <p className="text-white/50 text-xs md:text-sm leading-relaxed">{s.desc}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </StaggerGrid>
+      {/* TRUST BAR */}
+      <section className="relative py-12 md:py-16 bg-white border-y border-rule">
+        <div className="container mx-auto px-5 md:px-10">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-10">
+            <div className="flex items-center gap-5">
+              <MonoLabel className="text-foreground/40">Indústrias atendidas</MonoLabel>
+              <HairlineRule className="hidden md:block flex-1 max-w-12" />
+            </div>
+            <div className="flex flex-wrap items-center gap-x-7 gap-y-3">
+              {industries.map((ind, i) => (
+                <Reveal key={ind} variant="fadeUp" custom={i} className="flex items-center gap-2">
+                  <span className="w-1 h-1 rounded-full" style={{ background: GOLD }} />
+                  <span className="font-display font-medium tracking-tight text-base md:text-lg" style={{ color: NAVY_DEEP }}>
+                    {ind}
+                  </span>
+                </Reveal>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* ══ 6. SERVICES ══ */}
-      <section id="services" className="py-20 md:py-28 bg-white">
-        <div className="container mx-auto px-5 md:px-12">
-          <SectionLabel text="Nossas Verticais" />
-          <div className="grid lg:grid-cols-2 gap-12 md:gap-16 items-start">
-            <div>
-              <AnimatedHeading className="text-4xl md:text-6xl font-display font-bold leading-[0.95] mb-10" style={{ color: NAVY }}>
-                ENGENHARIA DE NEGÓCIOS.
-              </AnimatedHeading>
-              <StaggerGrid className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {services.map((s, i) => (
-                  <motion.div key={i} variants={staggerChild}
-                    className="rounded-2xl border border-foreground/8 p-5 md:p-6 bg-muted h-full flex flex-col cursor-pointer"
-                    whileHover={{ y: -4, boxShadow: '0 14px 36px rgba(27,58,138,0.09)', borderColor: `${NAVY}28` }}
-                    transition={{ duration: 0.2 }}>
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-4 shrink-0" style={{ background: `${GOLD}1a` }}>
-                      {s.icon}
-                    </div>
-                    <h3 className="font-bold mb-1.5 text-sm leading-snug" style={{ color: NAVY }}>{s.title}</h3>
-                    <p className="text-foreground/55 text-xs leading-relaxed flex-1">{s.desc}</p>
-                    <div className="flex items-center gap-1 mt-3 text-xs font-bold uppercase tracking-wide" style={{ color: GOLD }}>
-                      Saiba mais <ChevronRight className="w-3 h-3" />
-                    </div>
-                  </motion.div>
-                ))}
-              </StaggerGrid>
-            </div>
-            <Reveal variant="fadeRight" className="relative h-[480px] md:h-[580px] hidden lg:block">
-              <motion.div className="w-full h-full rounded-2xl overflow-hidden shadow-2xl"
-                whileHover={{ scale: 1.015 }} transition={{ duration: 0.35 }}>
-                <img src={axisConcept} alt="Engenharia de Negócios" loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 rounded-2xl" style={{ background: `linear-gradient(to top, ${NAVY}80, transparent 55%)` }} />
-              </motion.div>
-            </Reveal>
-          </div>
-        </div>
-      </section>
+      {/* DUAL AXIS */}
+      <section id="dual-axis" className="relative py-20 md:py-28 bg-paper overflow-hidden">
+        <GridLightDots />
+        <div className="container mx-auto px-5 md:px-10 relative">
+          <SectionCoord index="02" label="Dual Axis" right="Two axes · One OS" />
 
-      {/* ══ 6.5 AXIS ERP — Product showcase ══ */}
-      <section id="erp" className="py-20 md:py-28 bg-muted">
-        <div className="container mx-auto px-5 md:px-12">
-          <div className="grid lg:grid-cols-12 gap-10 md:gap-14 items-center">
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-start mb-16">
             <div className="lg:col-span-5">
-              <SectionLabel text="Tecnologia Proprietária" />
-              <AnimatedHeading className="text-3xl md:text-5xl uppercase font-display font-bold tracking-tighter leading-[1.05] mb-5" style={{ color: NAVY }}>
-                Axis ERP — a infraestrutura da sua operação.
+              <AnimatedHeading
+                className="font-display font-bold tracking-[-0.03em] leading-[0.95]"
+                style={{ color: NAVY_DEEP, fontSize: 'clamp(2rem, 5vw, 3.75rem)' }}
+              >
+                A maioria entrega PowerPoint.
               </AnimatedHeading>
+            </div>
+            <div className="lg:col-span-7 lg:pt-3 flex flex-col lg:items-end lg:text-right">
               <Reveal variant="fadeUp" custom={1}>
-                <p className="text-base md:text-lg text-foreground/60 leading-relaxed mb-8">
-                  Mais do que consultoria: deixamos um sistema rodando. Vendas, estoque, financeiro e métricas em tempo real — tudo numa única visão, multi-filial.
+                <p className="font-display font-medium text-2xl md:text-3xl leading-snug tracking-tight" style={{ color: NAVY_DEEP }}>
+                  Nós deixamos um <span className="font-bold" style={{ color: NAVY }}>sistema rodando</span>.
+                </p>
+                <p className="mt-5 text-foreground/65 leading-relaxed text-base md:text-lg max-w-xl lg:ml-auto">
+                  O Axis combina dois eixos que normalmente vivem separados: o consultor que enxerga o problema, e o software que executa a solução. É a única forma de garantir que a estratégia não fique no slide.
                 </p>
               </Reveal>
+            </div>
+          </div>
 
-              <StaggerGrid className="space-y-3 mb-8">
-                {[
-                  { icon: <BarChart3 className="w-4 h-4" style={{ color: GOLD }} />, title: 'Métricas em tempo real', desc: 'Faturamento, ticket médio, comparativo entre filiais — sem planilha.' },
-                  { icon: <Building2 className="w-4 h-4" style={{ color: GOLD }} />, title: 'Operacional integrado', desc: 'Vendas, estoque, compras e logística no mesmo fluxo.' },
-                  { icon: <ShieldCheck className="w-4 h-4" style={{ color: GOLD }} />, title: 'Financeiro no controle', desc: 'Contas a pagar/receber, conciliação bancária, categorias.' },
-                  { icon: <TrendingUp className="w-4 h-4" style={{ color: GOLD }} />, title: 'Multi-filial nativo', desc: 'Compare desempenho entre unidades em um clique.' },
-                ].map((f, i) => (
-                  <motion.div key={i} variants={staggerChild} className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{ background: `${GOLD}1a` }}>
-                      {f.icon}
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-sm mb-0.5" style={{ color: NAVY }}>{f.title}</h4>
-                      <p className="text-foreground/55 text-sm leading-relaxed">{f.desc}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </StaggerGrid>
+          <Reveal variant="fadeUp" custom={2}>
+            <div className="grid md:grid-cols-[1fr_auto_1fr] gap-6 md:gap-4 items-stretch">
+              <div className="relative bg-white rounded-2xl border border-rule p-7 md:p-9 hover:border-[#1B3A8A]/30 transition-colors duration-300 overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1" style={{ background: NAVY }} />
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4" style={{ color: NAVY }} />
+                    <MonoLabel style={{ color: NAVY }}>Eixo A · Consultoria</MonoLabel>
+                  </div>
+                  <MonoLabel className="text-foreground/35">Humano</MonoLabel>
+                </div>
+                <h3 className="font-display font-bold text-2xl md:text-3xl tracking-tight mb-5" style={{ color: NAVY_DEEP }}>
+                  Diagnóstico, estratégia e choque de gestão.
+                </h3>
+                <ul className="space-y-2.5 mb-6">
+                  {['Auditoria de DRE e fluxo de caixa', 'Plano tático de 90 dias', 'Reestruturação operacional in loco', 'Choque de gestão e cultura'].map((it) => (
+                    <li key={it} className="flex items-start gap-2.5 text-sm text-foreground/70">
+                      <span className="w-1 h-1 rounded-full mt-2 shrink-0" style={{ background: GOLD }} />
+                      {it}
+                    </li>
+                  ))}
+                </ul>
+                <HairlineRule className="my-5" />
+                <div className="flex items-center justify-between">
+                  <MonoLabel className="text-foreground/40">Entregável</MonoLabel>
+                  <span className="text-sm font-display font-semibold" style={{ color: NAVY_DEEP }}>
+                    Empresa redesenhada
+                  </span>
+                </div>
+              </div>
 
-              <div className="flex flex-col sm:flex-row gap-3">
-                <motion.a href="#contact"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 font-bold tracking-wide rounded-xl text-sm uppercase"
-                  style={{ background: NAVY, color: 'white' }}
-                  whileHover={{ scale: 1.03, filter: 'brightness(1.08)' }} whileTap={{ scale: 0.97 }}>
-                  Solicitar Demo <ArrowRight className="w-4 h-4" />
-                </motion.a>
-                <motion.a href="#contact"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 font-bold tracking-wide rounded-xl text-sm uppercase border-2"
-                  style={{ borderColor: `${NAVY}33`, color: NAVY }}
-                  whileHover={{ borderColor: NAVY, scale: 1.02 }} whileTap={{ scale: 0.97 }}>
-                  Falar com Especialista
-                </motion.a>
+              <div className="hidden md:flex flex-col items-center justify-center px-2">
+                <motion.svg
+                  width="64" height="64" viewBox="0 0 64 64"
+                  initial={{ rotate: 0 }}
+                  whileInView={{ rotate: 360 }}
+                  viewport={{ once: false }}
+                  transition={{ duration: 24, repeat: Infinity, ease: 'linear' }}
+                >
+                  <circle cx="32" cy="32" r="14" fill="none" stroke={GOLD} strokeWidth="1.5" />
+                  <circle cx="32" cy="32" r="22" fill="none" stroke={NAVY} strokeWidth="1" strokeDasharray="3 5" />
+                  {[0, 60, 120, 180, 240, 300].map((deg) => (
+                    <line
+                      key={deg}
+                      x1="32" y1="32"
+                      x2={32 + Math.cos((deg * Math.PI) / 180) * 14}
+                      y2={32 + Math.sin((deg * Math.PI) / 180) * 14}
+                      stroke={NAVY} strokeWidth="1" opacity="0.45"
+                    />
+                  ))}
+                  <circle cx="32" cy="32" r="3" fill={GOLD} />
+                </motion.svg>
+                <MonoLabel className="text-foreground/40 mt-3">Axis</MonoLabel>
+              </div>
+
+              <div className="md:hidden flex items-center justify-center py-2">
+                <span className="font-mono text-foreground/35 text-xl">↕</span>
+              </div>
+
+              <div className="relative bg-white rounded-2xl border border-rule p-7 md:p-9 hover:border-[#C9A028]/40 transition-colors duration-300 overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1" style={{ background: GOLD }} />
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <Cpu className="w-4 h-4" style={{ color: GOLD }} />
+                    <MonoLabel style={{ color: GOLD }}>Eixo B · Axis ERP</MonoLabel>
+                  </div>
+                  <MonoLabel className="text-foreground/35">Software</MonoLabel>
+                </div>
+                <h3 className="font-display font-bold text-2xl md:text-3xl tracking-tight mb-5" style={{ color: NAVY_DEEP }}>
+                  Operação, métricas e controle multi-filial.
+                </h3>
+                <ul className="space-y-2.5 mb-6">
+                  {['Vendas, estoque e financeiro num só fluxo', 'Métricas em tempo real, sem planilha', 'Multi-filial nativo com comparativos', 'Conciliação bancária automática'].map((it) => (
+                    <li key={it} className="flex items-start gap-2.5 text-sm text-foreground/70">
+                      <span className="w-1 h-1 rounded-full mt-2 shrink-0" style={{ background: GOLD }} />
+                      {it}
+                    </li>
+                  ))}
+                </ul>
+                <HairlineRule className="my-5" />
+                <div className="flex items-center justify-between">
+                  <MonoLabel className="text-foreground/40">Entregável</MonoLabel>
+                  <span className="text-sm font-display font-semibold" style={{ color: NAVY_DEEP }}>
+                    Sistema rodando
+                  </span>
+                </div>
               </div>
             </div>
+          </Reveal>
 
-            <Reveal variant="fadeRight" className="lg:col-span-7">
-              <div className="relative">
-                {/* Browser frame */}
-                <motion.div
-                  className="relative rounded-2xl overflow-hidden border border-foreground/10 bg-white shadow-2xl"
-                  whileHover={{ y: -4 }}
-                  transition={{ duration: 0.3 }}
-                  style={{ boxShadow: '0 30px 80px -20px rgba(27,58,138,0.25)' }}
-                >
-                  <div className="flex items-center gap-1.5 px-4 py-3 border-b border-foreground/8 bg-foreground/[0.02]">
-                    <span className="w-3 h-3 rounded-full bg-[#ff5f57]" />
-                    <span className="w-3 h-3 rounded-full bg-[#febc2e]" />
-                    <span className="w-3 h-3 rounded-full bg-[#28c840]" />
-                    <div className="ml-4 flex-1 h-6 rounded-md bg-foreground/[0.04] flex items-center px-3">
-                      <span className="text-[10px] font-medium text-foreground/40 tracking-wide">app.axiserp.com.br/metricas</span>
-                    </div>
-                  </div>
-                  <img
-                    src="/erp-screenshot.png"
-                    alt="Axis ERP — painel de métricas com faturamento, ticket médio e gráfico de vendas diárias"
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-auto block"
-                  />
-                </motion.div>
+          <Reveal variant="fadeUp" custom={3} className="mt-12 text-center">
+            <div className="inline-flex items-center gap-3">
+              <span className="h-px w-8" style={{ background: GOLD }} />
+              <p className="font-display font-medium text-lg md:text-xl tracking-tight" style={{ color: NAVY_DEEP }}>
+                O único consultor que vem com infraestrutura.
+              </p>
+              <span className="h-px w-8" style={{ background: GOLD }} />
+            </div>
+          </Reveal>
+        </div>
+      </section>
 
-                {/* Disclaimer */}
-                <p className="mt-4 text-xs text-foreground/45 italic text-center md:text-right">
-                  * Imagem ilustrativa do produto. Dados exibidos são fictícios para fins de demonstração.
+      {/* METRICS editorial */}
+      <section className="py-20 md:py-28 bg-white">
+        <div className="container mx-auto px-5 md:px-10">
+          <SectionCoord index="03" label="Numbers" right="04 indicators" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-y-10 gap-x-6">
+            {[
+              { raw: 'R$ 1.2M', label: 'Receita recuperada média por cliente' },
+              { to: 40, suffix: '%', label: 'Redução média de custos operacionais' },
+              { to: 150, prefix: '+', label: 'Operações reestruturadas no Brasil' },
+              { to: 90, suffix: ' dias', label: 'Tempo médio para ROI do projeto' },
+            ].map((m, i) => (
+              <Reveal key={i} variant="fadeUp" custom={i} className="relative">
+                <MonoLabel className="text-foreground/35 mb-3 block">0{i + 1} / 04</MonoLabel>
+                <div className="font-display font-bold tracking-[-0.04em] leading-none mb-3 tabular-nums" style={{ color: NAVY_DEEP, fontSize: 'clamp(2.5rem, 6vw, 4.5rem)' }}>
+                  {m.raw ? m.raw : <Counter to={m.to!} prefix={m.prefix ?? ''} suffix={m.suffix ?? ''} />}
+                </div>
+                <HairlineRule className="mb-3" />
+                <p className="text-sm text-foreground/55 leading-relaxed max-w-[18ch]">
+                  {m.label}
                 </p>
-
-                {/* Floating accent badge */}
-                <motion.div
-                  className="hidden md:flex absolute -top-4 -left-4 items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest shadow-lg"
-                  style={{ background: GOLD, color: '#0d1f4e' }}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true, margin: '-80px' }}
-                  transition={{ duration: 0.5, ease: EASE_OUT, delay: 0.2 }}
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#0d1f4e] animate-pulse" />
-                  Em produção
-                </motion.div>
-              </div>
-            </Reveal>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ══ 7. CASES — Navy ══ */}
-      <section id="cases" className="relative py-20 md:py-28 overflow-hidden"
-        style={{ background: `linear-gradient(135deg, ${NAVY} 0%, #0d1f4e 100%)` }}>
-        <GridCases />
-        <div className="relative z-10 container mx-auto px-5 md:px-12">
-          <Reveal variant="fadeUp" className="text-center mb-12">
-            <div className="flex items-center justify-center gap-4 mb-3">
-              <div className="h-0.5 w-10 rounded-full" style={{ background: GOLD }} />
-              <span className="uppercase tracking-widest font-bold text-xs" style={{ color: `${GOLD}cc` }}>Estudos de Caso</span>
-              <div className="h-0.5 w-10 rounded-full" style={{ background: GOLD }} />
-            </div>
-            <AnimatedHeading className="text-3xl md:text-5xl font-display font-bold leading-tight text-white">
-              RESULTADOS REAIS. NÚMEROS INQUESTIONÁVEIS.
-            </AnimatedHeading>
-          </Reveal>
+      {/* METHOD */}
+      <section id="method" className="relative py-20 md:py-28 overflow-hidden" style={{ background: `linear-gradient(135deg, ${NAVY_DEEP} 0%, ${NAVY} 100%)` }}>
+        <GridDots />
+        <div className="relative z-10 container mx-auto px-5 md:px-10">
+          <SectionCoord index="04" label="Method" right="04 stages" dark />
 
-          <StaggerGrid className="grid md:grid-cols-2 gap-4 md:gap-5">
-            {[
-              { sector: 'Indústria de Manufatura', title: 'Corte de R$ 150mil em despesas sem perda de capacidade.', desc: 'Reestruturação da cadeia de suprimentos e renegociação de contratos em 4 meses.', metric: '-42%', label: 'Custo de Operação' },
-              { sector: 'SaaS B2B Enterprise',     title: 'Aumento de 215% no ARR reestruturando o comissionamento.', desc: 'Nova política de pricing e tiers enterprise que destravaram contas paradas.', metric: '+215%', label: 'Receita Anual (ARR)' },
-            ].map((c, i) => (
-              <motion.div key={i} variants={staggerChild}
-                className="bg-white/[0.07] border border-white/10 rounded-2xl p-7 md:p-10 flex flex-col h-full"
-                whileHover={{ backgroundColor: 'rgba(255,255,255,0.11)', borderColor: `${GOLD}50` }}
-                transition={{ duration: 0.22 }}>
-                <div className="flex-1">
-                  <span className="text-xs font-bold tracking-widest uppercase mb-4 block" style={{ color: `${GOLD}bb` }}>{c.sector}</span>
-                  <h3 className="text-xl md:text-3xl font-bold mb-4 leading-tight text-white">{c.title}</h3>
-                  <p className="text-white/50 text-sm leading-relaxed">{c.desc}</p>
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 mb-12 md:mb-16">
+            <div className="lg:col-span-5">
+              <AnimatedHeading
+                className="font-display font-bold tracking-[-0.03em] leading-[0.95] text-white"
+                style={{ fontSize: 'clamp(2rem, 5vw, 3.75rem)' }}
+              >
+                Precisão milimétrica em 4 etapas.
+              </AnimatedHeading>
+            </div>
+            <div className="lg:col-span-7 lg:pt-3">
+              <Reveal variant="fadeUp" custom={1}>
+                <p className="text-white/55 leading-relaxed text-base md:text-lg">
+                  Cada etapa entrega um artefato concreto. Você sabe o que sai, quando sai e qual o impacto antes do próximo passo.
+                </p>
+              </Reveal>
+            </div>
+          </div>
+
+          <StaggerGrid className="grid md:grid-cols-2 lg:grid-cols-4 gap-px bg-white/8 rounded-2xl overflow-hidden">
+            {steps.map((s, i) => (
+              <motion.div
+                key={i}
+                variants={staggerChild}
+                className="relative bg-[#0d1f4e] p-7 md:p-8 hover:bg-[#102450] transition-colors duration-300 cursor-default"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <span className="font-display font-bold text-3xl tabular-nums" style={{ color: GOLD }}>
+                    {s.n}
+                  </span>
+                  <MonoLabel className="text-white/30">Stage</MonoLabel>
                 </div>
-                <div className="flex items-end justify-between border-t border-white/10 pt-6 mt-7">
-                  <div>
-                    <span className="block text-4xl md:text-5xl font-display font-bold mb-1" style={{ color: GOLD }}>{c.metric}</span>
-                    <span className="text-xs uppercase tracking-widest font-bold text-white/40">{c.label}</span>
-                  </div>
-                  <BarChart3 className="w-8 h-8 text-white/15" />
+                <h3 className="font-display font-bold text-white text-lg md:text-xl mb-2 tracking-tight leading-tight">
+                  {s.title}
+                </h3>
+                <p className="text-white/45 text-sm leading-relaxed mb-5">{s.desc}</p>
+                <HairlineRule dark className="mb-3" />
+                <div className="flex items-center gap-2">
+                  <GitBranch className="w-3 h-3" style={{ color: GOLD }} />
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-white/65">
+                    {s.deliverable}
+                  </span>
                 </div>
               </motion.div>
             ))}
@@ -865,105 +781,312 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══ 8. TEAM ══ */}
-      <section className="py-20 md:py-28 bg-white">
-        <div className="container mx-auto px-5 md:px-12">
-          <div className="grid lg:grid-cols-2 gap-10 md:gap-14 items-center">
-            <div>
-              <SectionLabel text="O Time" />
-              <AnimatedHeading className="text-3xl md:text-5xl font-display font-bold mb-6 leading-tight" style={{ color: NAVY }}>
-                SENIORIDADE NA VEIA. NENHUM JÚNIOR NO SEU PROJETO.
+      {/* SERVICES editorial list */}
+      <section className="py-20 md:py-28 bg-paper">
+        <div className="container mx-auto px-5 md:px-10">
+          <SectionCoord index="05" label="Verticals" right="04 areas" />
+
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 mb-10">
+            <div className="lg:col-span-5">
+              <AnimatedHeading
+                className="font-display font-bold tracking-[-0.03em] leading-[0.95]"
+                style={{ color: NAVY_DEEP, fontSize: 'clamp(2rem, 5vw, 3.75rem)' }}
+              >
+                Engenharia de negócios.
               </AnimatedHeading>
-              <Reveal variant="fadeLeft" custom={1}>
-                <p className="text-base md:text-lg text-foreground/60 leading-relaxed mb-4">
-                  Diferente das grandes consultorias globais que vendem sócios e entregam trainees, a Axis opera exclusivamente com profissionais que já sentaram na cadeira de C-Level.
-                </p>
-                <p className="text-sm md:text-base text-foreground/55 leading-relaxed">
-                  Quem planeja a sua estratégia é quem executa ao seu lado. Sem intermediários, sem perda de contexto.
+            </div>
+            <div className="lg:col-span-7 lg:pt-3">
+              <Reveal variant="fadeUp" custom={1}>
+                <p className="text-foreground/65 leading-relaxed text-base md:text-lg max-w-xl">
+                  Quatro frentes de atuação que cobrem o ciclo completo: do diagnóstico financeiro à execução técnica.
                 </p>
               </Reveal>
             </div>
-            <Reveal variant="fadeRight" className="relative aspect-[4/3] w-full">
-              <motion.div className="w-full h-full rounded-2xl overflow-hidden shadow-xl"
-                whileHover={{ scale: 1.015 }} transition={{ duration: 0.35 }}>
-                <img src={teamImg} alt="Liderança Axis" loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 rounded-2xl" style={{ background: `linear-gradient(to top, ${NAVY}70, transparent 50%)` }} />
-              </motion.div>
-            </Reveal>
           </div>
+
+          <StaggerGrid className="bg-white border border-rule rounded-2xl overflow-hidden">
+            {services.map((s, i) => (
+              <motion.a
+                key={i}
+                href="#contact"
+                variants={staggerChild}
+                className="group relative grid grid-cols-[60px_1fr_auto] md:grid-cols-[80px_300px_1fr_auto] gap-4 md:gap-8 px-6 md:px-9 py-7 md:py-8 border-b border-rule last:border-0 hover:bg-paper transition-colors items-center"
+              >
+                <MonoLabel className="text-foreground/35">{s.tag}</MonoLabel>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${GOLD}1a` }}>
+                    {s.icon}
+                  </div>
+                  <h3 className="font-display font-bold tracking-tight text-base md:text-lg" style={{ color: NAVY_DEEP }}>
+                    {s.title}
+                  </h3>
+                </div>
+                <p className="hidden md:block text-foreground/55 text-sm leading-relaxed">
+                  {s.desc}
+                </p>
+                <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" style={{ color: GOLD }} />
+                <p className="md:hidden text-foreground/55 text-sm leading-relaxed col-span-3 -mt-2">
+                  {s.desc}
+                </p>
+              </motion.a>
+            ))}
+          </StaggerGrid>
         </div>
       </section>
 
-      {/* ══ 9. FAQ ══ */}
-      <section id="faq" className="py-20 md:py-28 bg-muted">
-        <div className="container mx-auto px-5 md:px-12 max-w-2xl">
-          <Reveal variant="fadeUp" className="text-center mb-10">
-            <div className="flex justify-center mb-3">
-              <GoldLine />
+      {/* ERP SHOWCASE */}
+      <section id="erp" className="relative py-20 md:py-28 bg-white overflow-hidden">
+        <div className="container mx-auto px-5 md:px-10 relative">
+          <SectionCoord index="06" label="Axis ERP · Live demo" right="Tecnologia proprietária" />
+
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-10 mb-10 md:mb-12 items-end">
+            <div className="lg:col-span-7">
+              <div className="flex items-center gap-2 mb-4">
+                <Layers className="w-4 h-4" style={{ color: GOLD }} />
+                <MonoLabel style={{ color: GOLD }}>Em produção · v2.6</MonoLabel>
+              </div>
+              <AnimatedHeading
+                className="font-display font-bold tracking-[-0.03em] leading-[0.92]"
+                style={{ color: NAVY_DEEP, fontSize: 'clamp(2.2rem, 6vw, 4.5rem)' }}
+              >
+                A infraestrutura por trás da sua próxima escala.
+              </AnimatedHeading>
             </div>
-            <AnimatedHeading className="text-3xl md:text-5xl font-display font-bold" style={{ color: NAVY }}>
-              PERGUNTAS DIRETAS. RESPOSTAS CLARAS.
-            </AnimatedHeading>
+            <div className="lg:col-span-5">
+              <Reveal variant="fadeUp" custom={1}>
+                <p className="text-foreground/65 leading-relaxed text-base md:text-lg">
+                  O Axis ERP centraliza vendas, estoque, financeiro e métricas multi-filial em uma única plataforma. Abaixo, a interface real do produto — interaja com as abas e troque entre filiais.
+                </p>
+              </Reveal>
+            </div>
+          </div>
+
+          <Reveal variant="fadeUp" custom={2}>
+            <ErpMockup />
           </Reveal>
-          <Reveal variant="fadeUp" custom={1}>
-            <div className="bg-white rounded-2xl border border-foreground/8 shadow-sm px-5 md:px-7">
-              {faqs.map((item, i) => (
-                <Accordion key={i} title={item.q}>{item.a}</Accordion>
+
+          <Reveal variant="fadeUp" custom={3}>
+            <div className="mt-10 grid md:grid-cols-3 gap-4">
+              {[
+                { icon: <LineChart className="w-4 h-4" style={{ color: GOLD }} />, title: 'Métricas em tempo real', desc: 'Faturamento, ticket médio, comparativo entre filiais — sem planilha.' },
+                { icon: <Boxes className="w-4 h-4" style={{ color: GOLD }} />, title: 'Operacional integrado', desc: 'Vendas, estoque, compras e logística no mesmo fluxo.' },
+                { icon: <ShieldCheck className="w-4 h-4" style={{ color: GOLD }} />, title: 'Financeiro no controle', desc: 'Contas, conciliação bancária, projeção de saldo.' },
+              ].map((f, i) => (
+                <div key={i} className="flex items-start gap-3 p-5 rounded-xl bg-paper border border-rule">
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${GOLD}1a` }}>
+                    {f.icon}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm mb-1" style={{ color: NAVY_DEEP }}>{f.title}</h4>
+                    <p className="text-foreground/55 text-sm leading-relaxed">{f.desc}</p>
+                  </div>
+                </div>
               ))}
             </div>
           </Reveal>
+
+          <Reveal variant="fadeUp" custom={4} className="mt-10 flex flex-col sm:flex-row gap-3 justify-center">
+            <motion.a
+              href="#contact"
+              className="inline-flex items-center justify-center gap-2 px-7 py-4 font-bold tracking-widest rounded-xl text-xs uppercase font-mono"
+              style={{ background: NAVY_DEEP, color: 'white' }}
+              whileHover={{ scale: 1.03, filter: 'brightness(1.15)' }}
+              whileTap={{ scale: 0.97 }}
+            >
+              Solicitar demo guiada <ArrowRight className="w-4 h-4" />
+            </motion.a>
+            <motion.a
+              href="#contact"
+              className="inline-flex items-center justify-center gap-2 px-7 py-4 font-bold tracking-widest rounded-xl text-xs uppercase border-2 font-mono"
+              style={{ borderColor: `${NAVY}33`, color: NAVY_DEEP }}
+              whileHover={{ borderColor: NAVY, scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              Falar com especialista
+            </motion.a>
+          </Reveal>
+
+          <p className="mt-8 text-center font-mono text-[10px] uppercase tracking-widest text-foreground/35">
+            Imagem ilustrativa · Dados sintéticos
+          </p>
         </div>
       </section>
 
-      {/* ══ 10. CONTACT ══ */}
-      <section id="contact" className="py-20 md:py-28 bg-white">
-        <div className="container mx-auto px-5 md:px-12">
-          <div className="grid lg:grid-cols-2 gap-10 md:gap-14 items-start">
-            <Reveal variant="fadeLeft">
-              <SectionLabel text="O Próximo Passo" />
-              <AnimatedHeading className="text-4xl md:text-6xl font-display font-bold mb-7 leading-[0.92]" style={{ color: NAVY }}>
-                É HORA DE MUDAR O EIXO.
+      {/* CASES */}
+      <section id="cases" className="relative py-20 md:py-28 overflow-hidden" style={{ background: `linear-gradient(135deg, ${NAVY} 0%, ${NAVY_DEEP} 100%)` }}>
+        <GridDots />
+        <div className="relative z-10 container mx-auto px-5 md:px-10">
+          <SectionCoord index="07" label="Field results" right="Verificáveis sob NDA" dark />
+
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 mb-12 md:mb-16">
+            <div className="lg:col-span-7">
+              <AnimatedHeading
+                className="font-display font-bold tracking-[-0.03em] leading-[0.92] text-white"
+                style={{ fontSize: 'clamp(2.2rem, 5.5vw, 4rem)' }}
+              >
+                Resultados reais.<br />Números inquestionáveis.
               </AnimatedHeading>
-              <p className="text-base md:text-lg text-foreground/60 mb-10 max-w-sm leading-relaxed">
+            </div>
+            <div className="lg:col-span-5 lg:pt-3">
+              <Reveal variant="fadeUp" custom={1}>
+                <p className="text-white/55 leading-relaxed text-base md:text-lg">
+                  Cada projeto entregue carrega métrica antes/depois auditada. Aqui, dois recortes representativos do portfólio.
+                </p>
+              </Reveal>
+            </div>
+          </div>
+
+          <StaggerGrid className="grid md:grid-cols-2 gap-4 md:gap-5">
+            {cases.map((c, i) => (
+              <motion.div
+                key={i}
+                variants={staggerChild}
+                className="relative bg-white/[0.06] border border-white/10 rounded-2xl p-7 md:p-9 flex flex-col h-full hover:bg-white/[0.09] hover:border-white/20 transition-colors"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <MonoLabel style={{ color: `${GOLD}cc` }}>{c.tag} · {c.sector}</MonoLabel>
+                  <MonoLabel className="text-white/35">{c.duration}</MonoLabel>
+                </div>
+
+                <h3 className="text-xl md:text-2xl font-display font-bold mb-3 leading-tight text-white tracking-tight">
+                  {c.title}
+                </h3>
+                <p className="text-white/50 text-sm md:text-base leading-relaxed mb-7">{c.desc}</p>
+
+                <div className="space-y-4 mb-7">
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <MonoLabel className="text-white/35">Antes — {c.before.label}</MonoLabel>
+                      <span className="font-mono text-xs text-white/45">{c.before.value}</span>
+                    </div>
+                    <div className="h-1 rounded-full bg-white/10 overflow-hidden">
+                      <motion.div
+                        className="h-full rounded-full bg-white/20"
+                        initial={{ width: 0 }}
+                        whileInView={{ width: c.before.width }}
+                        viewport={{ once: true, margin: '-50px' }}
+                        transition={{ duration: 0.9, ease: EASE }}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <MonoLabel style={{ color: GOLD }}>Depois — {c.after.label}</MonoLabel>
+                      <span className="font-mono text-xs text-white">{c.after.value}</span>
+                    </div>
+                    <div className="h-1 rounded-full bg-white/10 overflow-hidden">
+                      <motion.div
+                        className="h-full rounded-full"
+                        style={{ background: GOLD }}
+                        initial={{ width: 0 }}
+                        whileInView={{ width: c.after.width }}
+                        viewport={{ once: true, margin: '-50px' }}
+                        transition={{ duration: 1.1, ease: EASE, delay: 0.2 }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-auto flex items-end justify-between border-t border-white/10 pt-6">
+                  <div>
+                    <span className="block text-4xl md:text-5xl font-display font-bold mb-1 tabular-nums" style={{ color: GOLD }}>
+                      {c.metric}
+                    </span>
+                    <MonoLabel className="text-white/40">{c.metricLabel}</MonoLabel>
+                  </div>
+                  <BarChart3 className="w-7 h-7 text-white/15" />
+                </div>
+              </motion.div>
+            ))}
+          </StaggerGrid>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="py-20 md:py-28 bg-paper">
+        <div className="container mx-auto px-5 md:px-10">
+          <SectionCoord index="08" label="Frequently asked" right={`${faqs.length} questions`} />
+
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12">
+            <div className="lg:col-span-5">
+              <AnimatedHeading
+                className="font-display font-bold tracking-[-0.03em] leading-[0.95] lg:sticky lg:top-28"
+                style={{ color: NAVY_DEEP, fontSize: 'clamp(2rem, 5vw, 3.75rem)' }}
+              >
+                Perguntas diretas.<br />Respostas claras.
+              </AnimatedHeading>
+            </div>
+            <div className="lg:col-span-7">
+              <Reveal variant="fadeUp" custom={1}>
+                <div className="bg-white rounded-2xl border border-rule px-6 md:px-8">
+                  {faqs.map((item, i) => (
+                    <Accordion key={i} index={`Q-${String(i + 1).padStart(2, '0')}`} q={item.q} a={item.a} />
+                  ))}
+                </div>
+              </Reveal>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CONTACT */}
+      <section id="contact" className="py-20 md:py-28 bg-white">
+        <div className="container mx-auto px-5 md:px-10">
+          <SectionCoord index="09" label="Get in touch" right="Resposta em 24h úteis" />
+
+          <div className="grid lg:grid-cols-12 gap-10 md:gap-14 items-start">
+            <Reveal variant="fadeLeft" className="lg:col-span-5">
+              <AnimatedHeading
+                className="font-display font-bold tracking-[-0.03em] leading-[0.92] mb-7"
+                style={{ color: NAVY_DEEP, fontSize: 'clamp(2.2rem, 6vw, 4.5rem)' }}
+              >
+                É hora de mudar o eixo.
+              </AnimatedHeading>
+              <p className="text-foreground/65 mb-10 max-w-sm leading-relaxed text-base md:text-lg">
                 Agende uma sessão de diagnóstico de 30 minutos. Sem compromisso comercial.
               </p>
-              <div className="space-y-4">
+              <div className="space-y-4 mb-10">
                 {[
-                  { icon: <Mail className="w-4 h-4 text-white" />, label: 'E-mail Direto',  value: 'board@axisconsulting.com.br' },
-                  { icon: <MapPin className="w-4 h-4 text-white" />, label: 'Sede',          value: 'Av. Brigadeiro Faria Lima, 3477 · Itaim Bibi — SP' },
+                  { icon: <Mail className="w-4 h-4 text-white" />, label: 'E-mail Direto', value: 'axis.contato@outlook.com' },
+                  { icon: <MapPin className="w-4 h-4 text-white" />, label: 'Sede', value: 'Av. Eng. Carlos Reinaldo Mendes, 3026 - Lote Gleba D1, Alto da Boa Vista, Sorocaba - SP.' },
                 ].map((item, i) => (
                   <div key={i} className="flex items-start gap-4">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{ background: NAVY }}>
                       {item.icon}
                     </div>
                     <div>
-                      <h4 className="font-bold uppercase tracking-wide text-xs mb-0.5" style={{ color: NAVY }}>{item.label}</h4>
-                      <p className="text-foreground/60 text-sm">{item.value}</p>
+                      <MonoLabel className="text-foreground/40 block mb-0.5">{item.label}</MonoLabel>
+                      <p className="text-foreground/75 text-sm md:text-base">{item.value}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </Reveal>
 
-            <Reveal variant="fadeRight">
+            <Reveal variant="fadeRight" className="lg:col-span-7">
               <ContactForm />
             </Reveal>
           </div>
         </div>
       </section>
 
-      {/* ══ 11. FOOTER ══ */}
-      <footer className="py-10 md:py-12 border-t border-foreground/8 bg-muted">
-        <div className="container mx-auto px-5 md:px-12 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
-          <div>
-            <div className="text-xl md:text-2xl font-display font-bold tracking-tighter uppercase mb-1" style={{ color: NAVY }}>
-              Axis<span style={{ color: GOLD }}>.</span>
+      {/* FOOTER */}
+      <footer className="py-10 md:py-14 border-t border-rule bg-paper">
+        <div className="container mx-auto px-5 md:px-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+              <div className="flex items-baseline gap-3 mb-2">
+                <span className="text-2xl md:text-3xl font-display font-bold tracking-tighter uppercase" style={{ color: NAVY_DEEP }}>
+                  Axis<span style={{ color: GOLD }}>.</span>
+                </span>
+                <MonoLabel className="text-foreground/35">{VERSION}</MonoLabel>
+              </div>
+              <MonoLabel className="text-foreground/45">Engenharia de negócios · ERP · Estratégia</MonoLabel>
             </div>
-            <p className="text-foreground/40 text-xs font-semibold uppercase tracking-widest">Estratégia & Execução</p>
+            <div className="flex flex-col items-start md:items-end gap-2">
+              <MonoLabel className="text-foreground/45">© {new Date().getFullYear()} Axis Consulting</MonoLabel>
+            </div>
           </div>
-          <p className="text-foreground/35 text-xs font-medium uppercase tracking-widest">
-            © {new Date().getFullYear()} Axis Consulting. Todos os direitos reservados.
-          </p>
         </div>
       </footer>
 
